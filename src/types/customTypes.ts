@@ -20,11 +20,15 @@ export interface RawLocation {
   titel: string
   weight: number
 }
+export interface CommentObj{
+
+}
 
 // Interface from https://jobboerse.th-nuernberg.de/srv.php/en/Suche/offers
 export interface RawSearch {
   jobs: RawJob[]
   orte: RawLocation[]
+  
 }
 
 export type Area = FeaturesEntity[]
@@ -117,6 +121,8 @@ export interface Properties {
   address?: string
   landmark?: boolean
   category?: string
+  type: string
+
 }
 
 export interface Geometry {

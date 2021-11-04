@@ -83,6 +83,18 @@ export const jobMutations = {
     return true
   },
   /**
+   * add jobs to visibleJobs. 
+   *
+   * @param state - The current state.
+   * @param payload - New jobs that will replace the old ones.
+   * @returns
+   */
+  addVisibleJobs(state: State, payload: Job[]): boolean{
+    const combined = state.visibleJobs.concat(payload)
+    state.visibleJobs = unique(combined)
+    return true
+  },
+  /**
    * Replace selectedJobs with new jobs.
    *
    * @param state - The current state.

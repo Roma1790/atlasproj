@@ -45,7 +45,7 @@ export const geometryActions: Record<string, Action> = {
    * @returns
    */
   setSelectedGeometries(ctx: Store, payload: Record<string, any>[]): boolean {
-    return ctx.commit("setSelectecGeometries", payload)
+    return ctx.commit("setSelectedGeometries", payload)
   },
 }
 /**
@@ -71,6 +71,15 @@ export const jobActions: Record<string, Action> = {
    */
   setVisibleJobs(ctx: Store, payload: Job[]) {
     return ctx.commit("setVisibleJobs", payload)
+  },
+  /**
+   * Add jobs to visibleJobs.
+   * @param ctx 
+   * @param payload 
+   * @returns 
+   */
+  addVisibleJobs(ctx: Store, payload: Job[]){
+    return ctx.commit("addVisibleJobs", payload)
   },
   /**
    * Replace jobs in selectedJobs.

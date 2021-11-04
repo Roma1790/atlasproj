@@ -3,9 +3,10 @@ import { Stroke, Style, Text } from "ol/style.js"
 import { Color } from "./color"
 import { Feature } from "ol"
 import Fill from "ol/style/Fill"
-import { Job } from "../types/customTypes"
+import { Job, SingleLocation } from "../types/customTypes"
 import RegularShape from "ol/style/RegularShape"
-import { bound } from "../lib/util"
+import { bound, isSingleLocation } from "../lib/util"
+import CircleStyle from 'ol/style/Circle';
 
 /**
  * Create a style for job clusters based on their score and proximity to each other.
@@ -93,18 +94,18 @@ export default class JobStyle {
    * @returns
    * @memberof JobStyle
    */
-  private polygonStyle(score: number, size: number): Style {
+  private pointStyle(score: number, size: number): Style {
     const radius = bound(15, size, 25)
     return new Style({
       image: new RegularShape({
-        points: 4,
+        points: 1,
         angle: Math.PI,
         radius: radius,
         stroke: new Stroke({
           color: this.colorByScore(score, 0.5).rgb(),
           width: bound(1, radius / 4, radius),
-          lineCap: "square",
-          lineJoin: "miter",
+          lineCap: "round",
+          lineJoin: "round",
         }),
         fill: new Fill({
           color: "rgba(255,255,255,0.8)",
@@ -119,6 +120,32 @@ export default class JobStyle {
       }),
     })
   }
+  private polygonStyle(score: number, size: number): Style {
+    const radius = bound(15, size, 25)
+    return new Style({
+      image: new CircleStyle({
+  
+        
+        radius: radius,
+        stroke: new Stroke({
+          color: this.colorByScore(score, 0.5).rgb(),
+          width: bound(1, radius / 4, radius),
+          
+        }),
+        fill: new Fill({
+          color: "rgba(255,255,255,0.8)",
+        }),
+      }),
+      text: new Text({
+        text: size.toString(),
+        scale: 1,
+        fill: new Fill({
+          color: "#000",
+        }),
+      }),
+    })
+  }
+  
 
   /**
    * Build the style for a job cluster.
@@ -129,11 +156,15 @@ export default class JobStyle {
    */
   public clusterStyle(cluster: Feature): Style[] {
     const features: Feature[] = cluster.get("features")
-    const size = features.length
+    const size = features.length 
     const score = this.maxScore(features)
+   
+    // Punkt oder Cluster und dann style festlegen.
     const style = this.polygonStyle(score, size)
-
+     
     return [style]
+    
+    
   }
 
   /**

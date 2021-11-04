@@ -11,6 +11,8 @@ import VectorSource from "ol/source/Vector"
 import { fromLonLat } from "ol/proj.js"
 import { isSingleLocation } from "./util"
 import { Select } from "ol/interaction"
+import { Style } from "ol/style"
+import { Color } from "../styles/color"
 /**
  * The Joblayer is responsible for displaying and animating as clusters.
  *
@@ -86,13 +88,14 @@ export default class JobLayer {
           newFeature.set("job", job, false)
           points.push(newFeature)
         } else {
+          console.log("da ist was passiert.")
           const newArea = this.createAreaFeature(location)
           newArea.set("job", job, false)
           areas.push(newArea)
         }
       })
     })
-
+    
     return { areas, points }
   }
 
@@ -106,7 +109,7 @@ export default class JobLayer {
    */
   private createSingleLoationFeature(location: SingleLocation): Feature {
     return new Feature({
-      geometry: new Point(fromLonLat([location.lon, location.lat])),
+      geometry: new Point(fromLonLat([location.lon, location.lat]), ),
     })
   }
 

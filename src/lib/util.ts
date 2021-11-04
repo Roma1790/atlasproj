@@ -104,3 +104,16 @@ export function carthesianProduct(array: any[][]): any[][] {
   }
   return results
 }
+/**
+ * Helper Function to check if array contains content.
+ * @param array 
+ * @returns Value if given array has any content.
+ */
+export function arrayContainsContent(array: Array<any>): boolean{
+  for(var counter:number = 0; counter<array.length; counter++){
+    if(array[counter] !== null){
+      return true;
+    }
+  }
+  return false;
+}

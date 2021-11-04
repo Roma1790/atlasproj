@@ -24,12 +24,28 @@ export class Jobs {
 
   /**
    * Fetch data from API.
+   * TODO: POST REQUEST HANDLING
    *
    * @private
    * @returns
    * @memberof Jobs
    */
-  private async fetchRawJobs(): Promise<RawSearch> {
+  private async fetchRawJobs(kategorie?: number, fakultaet?: number, branche?: number[], postreq?: boolean): Promise<RawSearch> {
+    if(postreq == true){
+      const body = {
+        Jobtyp_ID: kategorie,
+        FB_ID: fakultaet,
+        KT_1: branche
+      }
+      const options = {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          'Content-type': 'application/json'
+        }
+      }
+    }
+
     return fetch(this.url).then((response) => {
       if (!response.ok) {
         console.error(`Could not fetch jobs from ${this.url}, response was: `, response)
@@ -74,14 +90,15 @@ export class Jobs {
   }
 
   /**
-   * Public getter method.
+   * Public get or post method. 
+   * TODO: Anpassen an Kriterien
    *
    *
    * @returns
    * @memberof Jobs
    */
-  public async get(): Promise<Job[]> {
-    const rawJobs = await this.fetchRawJobs()
+  public async get(kategorie?: number, fakultaet?: number, branche?: number[], postreq?: boolean): Promise<Job[]> {
+    const rawJobs = await this.fetchRawJobs(kategorie, fakultaet, branche, postreq)
     return this.transform(rawJobs)
   }
 }
