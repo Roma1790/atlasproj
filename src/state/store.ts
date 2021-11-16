@@ -110,7 +110,7 @@ export class Store {
       console.error(`Mutation "${mutationName}" doesn't exist`)
       return false
     }
-    console.log(mutationName + "performed")
+    
     return this.mutations[mutationName](this.state, payload)
   }
 }

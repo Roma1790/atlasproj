@@ -20,9 +20,7 @@ export interface RawLocation {
   titel: string
   weight: number
 }
-export interface CommentObj{
 
-}
 
 // Interface from https://jobboerse.th-nuernberg.de/srv.php/en/Suche/offers
 export interface RawSearch {

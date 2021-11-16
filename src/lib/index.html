@@ -24,23 +24,26 @@
     <button id="resetter">Resetter</button>
     <form id="searchForm">
       <input id="searchField" type="text" placeholder="Ortssuche" />
+      <input type="radio" name="suchart"  value="Orts-Suche" checked/> Orts-Suche
+      <input type="radio" name="suchart" id="radSearch" value="Radius-Suche" /> Radius-Suche
+      <input type="number" id="radVal" value="10" min="10" max="999">Radius in km
       <span class="icon">
         <select name="kategorie" id="kategorie">
           <option value="Kategorie" selected>Kategorie</option>
-          <option value="Praktisches Studiensemester">Praktisches Studiensemester</option>
-          <option value="Bachelor- oder Masterarbeit">Bachelor- oder Masterarbeit</option>
-          <option value="Stellen für Doktoranden und Doktorandinnen">Stellen für Doktoranden und Doktorandinnen</option>
-          <option value="Stellen für Duales Studium">Stellen für Duales Studium</option>
-          <option value="Werkstudententätigkeit">Werkstudententätigkeit</option>
-          <option value="Studentenjob">Studentenjob</option>
-          <option value="Praktikum">Praktikum</option>
-          <option value="Stellen für Absolventen und Absolventinnen">Stellen für Absolventen und Absolventinnen</option>
-          <option value="Traineeprogramm">Traineeprogramm</option>
-          <option value="Stelle, die erste Berufserfahrung voraussetzt">Stelle, die erste Berufserfahrung voraussetzt</option>
-          <option value="Stellen für Studienabbrecher">Stellen für Studienabbrecher</option>
+          <option value="Jobtyp_ID=9">Praktikum im Studium</option>
+          <option value="Jobtyp_ID=7">Bachelor- oder Masterarbeit</option>
+          <option value="Jobtyp_ID=15">Stelle für Doktorandinnen u. Doktoranden</option>
+          <option value="Jobtyp_ID=20">Stelle für Duales Studium / Dualer Studienplatz</option>
+          <option value="Jobtyp_ID=10">Werkstudierendentätigkeit</option>
+          <option value="Jobtyp_ID=6">Job für Studierende</option>
+          <option value="Jobtyp_ID=3">Stelle für Absolventinnen u. Absolventen</option>
+          <option value="Jobtyp_ID=11">Traineeprogramm</option>
+          <option value="Jobtyp_ID=12">Stelle, die erste Berufserfahrung voraussetzt</option>
+          <option value="Jobtyp_ID=19">Stellen für Studienabbrecher/-innen</option>
         </select>
       </span>
-      <span class="icon">
+      <!--Wird im Moment nicht verwendet-->
+      <!--<span class="icon">
         <select name="fakultaet" id="fakultaet">
           <option value="Fakultät" selected>Fakultät</option>
           <option value="Angewandte Chemie">Angewandte Chemie</option>
@@ -56,10 +59,10 @@
           <option value="Verfahrenstechnik">Verfahrenstechnik</option>
           <option value="Werkstofftechnik">Werkstofftechnik</option>
         </select>
-      </span>
+      </span>-->
       <input type="button" id="auswahlBranche" onclick="zeigeBranchenliste()" value="Branche" /><br/>
       <!--script ist unnötig.. nur zum testen-->
-      <script>
+      <!--<script>
             let = zeigeBranchenliste= () => {
             let item = document.getElementById("checkboxes_branche")
             if(item.style.display == "none"){
@@ -70,7 +73,7 @@
             }
     
         }
-      </script>
+      </script> -->
       <div class="checkbox_auswahl" id="checkboxes_branche" style="display:none"> 
           <label>
               <input type="checkbox" class="checkboxes" id="branche1" value="Abfallwirtschaft" name="branche" />&nbsp;Abfallwirtschaft
@@ -211,7 +214,7 @@
               <input type="checkbox" class="checkboxes" id="branche46" value="Wissenschaft, Forschung & Entwicklung" name="branche" />&nbsp;Wissenschaft, Forschung &amp; Entwicklung
           </label><br/>
       </div>
-      <button id="searchSubmit" type="submit">Search</button>
+      <button id="searchSubmit" type="submit">Suchen</button>
     </form>
     <div style="position: absolute; right: 50px; top: 20px;">
       <div id="buttons">

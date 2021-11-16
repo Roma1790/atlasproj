@@ -8,6 +8,10 @@ import { arrayContainsContent, isSingleLocation } from "./util"
 import { metrics } from "./tracking"
 import { globalAgent } from "http"
 import { Geometry } from "ol/geom"
+import Sample from "../apis/sample"
+import { Draw } from "ol/interaction"
+import { SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG } from "constants"
+import Source from "ol/source/Source"
 
 /**
  * Displays a list of jobs under the map.
@@ -81,8 +85,9 @@ atlas.subscribe(["STATE_CHANGE_SELECTEDJOBS"], (state: State) => {
 })
 
 
-// Search
+// Get Elements of HTML
 const searchField = document.getElementById("searchField") as HTMLInputElement
+const radVal = document.getElementById("radVal") as HTMLInputElement
 const searchForm = document.getElementById("searchForm")
 const resetbutton = document.getElementById("resetter")
 const fakultaet = document.getElementById("fakultaet") as HTMLSelectElement
@@ -94,34 +99,17 @@ resetbutton?.addEventListener("click", () => {
   globalStore.dispatch("setSelectedGeometries",[])
   // Request for Jobs again... 
   new Jobs("https://raw.githubusercontent.com/chronark/atlas/master/static/rawJobs.json").get().then((jobs) => {
-  atlas.setJobs(jobs)
-
-   /*new Charon().forwardGeocoding("Bayern").then((geojson: GeocodingResponseObject | undefined) => {
-    if (geojson) {
-      jobs.push({
-        corp: "Bayern",
-        locations: [geojson.features],
-        date: "",
-        id: 0,
-        logo: "",
-        // TODO a score must be added
-        score: Math.random(),
-        title: "",
-        type: "",
-        url: "",
-      })
-      atlas.setJobs(jobs)
-      
-    }
-  })*/
+    globalStore.dispatch("setJobs", jobs)
+  })
+  atlas.clearSource(atlas.getDrawLayer())
+  atlas.zoomTo([0,0], 0)
 })
- atlas.zoomTo([41.00644,20.62500], 3)
-})
-
+// SubmitMethod
 if (searchField !== null && searchForm !== null) {
   searchForm.addEventListener("submit", (event) => {
     let postreq = false; 
     const query = searchField.value
+    const radQuery = radVal.valueAsNumber
     // FilterOptionen values müssen in id's übersetzt werden. 
     let kategorieVal = kategorie.nodeValue 
     let fakultaetVal = fakultaet.nodeValue 
@@ -129,14 +117,19 @@ if (searchField !== null && searchForm !== null) {
     for(var counter:number = 0; counter<46; counter++){
       brancheVal[counter] = branche.item(counter) as HTMLInputElement
     }
-    console.log(kategorieVal)
-    console.log(fakultaetVal)
-    console.log(brancheVal)
+  
     if(kategorieVal!==null || fakultaetVal!== null || arrayContainsContent(brancheVal)){
       postreq = true; 
     }
-    // In das search kategorien einfügen....
-    atlas.search(query)
+    // RadiusSearch ?? 
+    if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
+      console.log("radiussearching...")
+      atlas.radiusSearch(query,radQuery)
+    }
+    else{
+      atlas.search(query)
+    }
+    
     event.preventDefault()
   })
 }
@@ -145,10 +138,16 @@ if (searchField !== null && searchForm !== null) {
 /*new Jobs().get().then( (jobs) => {
   atlas.setJobs(jobs)
 })*/
-
+/*Sample Creator 
+let sample = new Sample()
+sample.jobs(5000).then( (jobs)=>{
+  atlas.setJobs(jobs)
+})
+*/
 // Using local source because of CORS problems.
 new Jobs("https://raw.githubusercontent.com/chronark/atlas/master/static/rawJobs.json").get().then((jobs) => {
-  atlas.setJobs(jobs)
+  globalStore.dispatch("setJobs", jobs)
+  
 
    /*new Charon().forwardGeocoding("Bayern").then((geojson: GeocodingResponseObject | undefined) => {
     if (geojson) {
@@ -169,6 +168,8 @@ new Jobs("https://raw.githubusercontent.com/chronark/atlas/master/static/rawJobs
     }
   })*/
 })
+
+
 
 
 

@@ -117,3 +117,33 @@ export function arrayContainsContent(array: Array<any>): boolean{
   }
   return false;
 }
+/**
+ * Function to translate the category into a Value that is readable for the database.
+ * @param category 
+ * @returns translated category in ID like - > "Jobtyp_ID=9"
+ */
+export function jobCategory(category: string): string{
+  switch(category){
+   case "Praktikum im Studium" :
+     return "Jobtyp_ID=9"; 
+   case "Bachelor- oder Masterarbeit" :
+     return "Jobtyp_ID=7";
+   case "Stellen für Doktoranden und Doktorandinnen" :
+     return "Jobtyp_ID=15"; 
+   case "Stellen für Duales Studium" :
+     return "Jobtyp_ID=20";
+   case "Werkstudententätigkeit":
+     return "Jobtyp_ID=10";
+   case "Studentenjob" :
+     return "Jobtyp_ID=6";
+   case "Stellen für Absolventen und Absolventinnen":
+     return "Jobtyp_ID=3";
+   case "Traineeprogramm" :
+     return "Jobtyp_ID=11";
+   case "Stelle, die erste Berufserfahrung voraussetzt":
+     return "Jobtyp_ID=12";
+   case "Stellen für Studienabbrecher": 
+     return "Jobtyp_ID=19";
+   default: return ""
+  }
+}

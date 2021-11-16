@@ -45,6 +45,19 @@ export default class Charon {
       return response.data
     }
   }
+  /**
+   * Geocoding Request to Nominatim directly
+   * @param query 
+   * @returns Deserialized json or undefined if nothing was found.
+   */
+  public async forwardGeocoding2(query: string): Promise<GeocodingResponseObject | undefined> {
+    metrics.addGeocoding()
+    const response = await Axios.get(`http://nominatim.openstreetmap.org/?format=json&addressdetails=1&q=${query}&format=geojson&limit=1`, {
+    })
+    if (response.status === 200) {
+      return response.data
+    }
+  }
 
   /**
    * Perform a reverse geocoding request agaisnt the backend.

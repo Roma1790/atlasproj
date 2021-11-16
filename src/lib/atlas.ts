@@ -10,13 +10,16 @@ import SelectionLayer from "./selectionLayer"
 import VectorLayer from "ol/layer/Vector"
 import VectorSource from "ol/source/Vector"
 import View from "ol/View"
+import Circle from "ol/geom/Circle"
+import Vector from "ol/source"
+
 import { Attribution, OverviewMap, Zoom } from "ol/control"
 import { Draw, Modify, Select } from "ol/interaction"
 import { Extent, boundingExtent, buffer } from "ol/extent"
 import { filterJobs } from "./geometryFilter"
 import { fromLonLat, transformExtent } from "ol/proj"
 import { Job, SingleLocation } from "../types/customTypes"
-import { Map, Feature } from "ol"
+import { Map, Feature, } from "ol"
 import { SelectEvent } from "ol/interaction/Select"
 import { shiftKeyOnly } from "ol/events/condition"
 import { State, Store, globalStore } from "../state/store"
@@ -24,6 +27,8 @@ import TileLayer from "ol/layer/Tile"
 import OSM from "ol/source/OSM"
 import { metrics } from "./tracking"
 import { Jobs } from "../apis/jobs"
+import { geometryActions } from "../state/actions"
+import { Console } from "console"
 
 /**
  * Initial map configuration options.
@@ -147,13 +152,16 @@ export default class Atlas {
         console.error("Could not find " + query)
         return
       }
-      
+      let geo = geojson.features[0].geometry
       const features = this.selectionLayer.addFeatureFromGeojson(geojson)
       // Feature stays in Map maybe delete?
       let view = this.map.getView();
       let zoom = view.getZoom();
       let viewcenter = view.getCenter();
       const geometry = features[0].getGeometry()
+      console.log(geo)
+      console.log(geometry)
+      
       // Select searched place to be visible
       
       globalStore.dispatch("setSelectedGeometries",[geometry])
@@ -164,10 +172,45 @@ export default class Atlas {
         setTimeout( () => {this.zoomToExtent(geometry.getExtent())}, 3700)
       }
       else{
-        setTimeout(()=>{this.zoomToExtent(features[0].getGeometry().getExtent())}, 400)
+        setTimeout(()=>{this.zoomToExtent(geometry.getExtent())}, 400)
         
       }
     }
+  }
+  async radiusSearch(query: string,radius:number, kategorie?: number, fakultaet?: number, branche?: number[], postreq?: boolean): Promise<void> {
+    
+    
+    const geojson = await new Charon().forwardGeocoding2(query)
+    if (geojson === undefined) {
+      console.error("Could not find " + query)
+       return
+    }
+    console.log(geojson)
+    let feature = geojson.features
+    // Coordinate = [lat,lon]
+    let coordinate = feature[0].geometry.coordinates
+    
+    // Umrechnung reinbringen..
+    var circle = new Circle([1233119.1727253478,6352227.834181847],15000)
+    
+    var features = new Feature(circle)
+    var vec = new VectorSource()
+    var modify = new Modify({
+      source: vec
+    })
+    this.map.addInteraction(modify)
+    vec.addFeature(features)  
+    var layer = new VectorLayer({
+      source: vec,
+      style: polygonStyle(),
+    })
+    
+    this.addLayer(layer,{
+      name: "circle",
+      overwrite: true,
+    });
+    console.log("fertig")
+    this.zoomToExtent(circle.getExtent()) 
   }
 
   /**
@@ -413,14 +456,14 @@ export default class Atlas {
       /**
        * Retrieve the circle element from the map in case it exists.
        *
-       * @returns
+       * @returns 
        */
       const getCircle = (): Geometry | undefined => {
         const source = this.getDrawLayer().getSource()
         if (source.getFeatures().length === 1) {
           return source.getFeatures()[0].get("geometry")
         }
-
+        console.log("returning undefinded")
         return undefined
       }
       /**
@@ -436,6 +479,7 @@ export default class Atlas {
         let circle: any
         let limit = 1000
         const interval = 100
+        
         while (!circle && limit > 0) {
           circle = getCircle()
           limit -= interval
@@ -450,7 +494,7 @@ export default class Atlas {
           globalStore.dispatch("setVisibleJobs", filteredJobs)
         }
       }
-
+      
       draw.on("drawend", () => {
         onEnd()
         this.clearSource(this.getDrawLayer())
@@ -489,7 +533,7 @@ export default class Atlas {
    * @returns
    * @memberof Atlas
    */
-  private getDrawLayer(clear?: boolean): VectorLayer {
+  public getDrawLayer(clear?: boolean): VectorLayer {
     let [layer, wasCreated] = this.getOrCreateLayer("drawLayer", {
       source: new VectorSource(),
       // Sets the style after transformation
@@ -506,12 +550,12 @@ export default class Atlas {
   /**
    * Helper function to clear the source of a layer.
    *
-   * @private
+   * @public
    * @param  layer
    * @returns
    * @memberof Atlas
    */
-  private clearSource(layer: VectorLayer): VectorLayer {
+  public clearSource(layer: VectorLayer): VectorLayer {
     if (typeof layer.getSource === "function") {
       layer.getSource().clear()
     }
@@ -652,18 +696,6 @@ export default class Atlas {
     this.addLayer(this.JobLayer.animatedCluster, { name: "cluster" })
     this.addLayer(this.JobLayer.areas, { name: "areas" })
     
-  }
-
-  /**
-   * Loads new jobs into the store.
-   *
-   * This will overwrite the old ones, so please merge your jobs before if you wish to only add jobs.
-   *
-   * @param jobs
-   * @memberof Atlas
-   */
-  public setJobs(jobs: Job[]): void {
-    globalStore.dispatch("setJobs", jobs)
   }
 
   /**
