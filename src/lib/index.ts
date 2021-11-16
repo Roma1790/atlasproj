@@ -90,7 +90,7 @@ const searchField = document.getElementById("searchField") as HTMLInputElement
 const radVal = document.getElementById("radVal") as HTMLInputElement
 const searchForm = document.getElementById("searchForm")
 const resetbutton = document.getElementById("resetter")
-const fakultaet = document.getElementById("fakultaet") as HTMLSelectElement
+// grade nicht verwendet const fakultaet = document.getElementById("fakultaet") as HTMLSelectElement
 const kategorie = document.getElementById("kategorie") as HTMLSelectElement
 const branche = document.getElementsByClassName("checkboxes") as HTMLCollectionOf<HTMLInputElement>
 // ResetterButton
@@ -112,13 +112,13 @@ if (searchField !== null && searchForm !== null) {
     const radQuery = radVal.valueAsNumber
     // FilterOptionen values müssen in id's übersetzt werden. 
     let kategorieVal = kategorie.nodeValue 
-    let fakultaetVal = fakultaet.nodeValue 
+     // grade nicht verwendet let fakultaetVal = fakultaet.nodeValue 
     let brancheVal : HTMLInputElement[] = new Array(46)
     for(var counter:number = 0; counter<46; counter++){
       brancheVal[counter] = branche.item(counter) as HTMLInputElement
     }
   
-    if(kategorieVal!==null || fakultaetVal!== null || arrayContainsContent(brancheVal)){
+    if(kategorieVal!==null || arrayContainsContent(brancheVal)){
       postreq = true; 
     }
     // RadiusSearch ?? 

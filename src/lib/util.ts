@@ -146,4 +146,18 @@ export function jobCategory(category: string): string{
      return "Jobtyp_ID=19";
    default: return ""
   }
+  
+}
+/**
+ * Converts Latitude and Longitude into Meter - Coordinates.
+   *  See https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames for more details.
+   * @param lon  longitude
+   * @param lat latitude
+   * @returns returns coordinates in meters
+   */
+ export function degrees2meters (lon: number,lat:number) {
+  var x = lon * 20037508.34 / 180;
+  var y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180);
+  y = y * 20037508.34 / 180;
+  return [x, y]
 }

@@ -12,12 +12,13 @@ import VectorSource from "ol/source/Vector"
 import View from "ol/View"
 import Circle from "ol/geom/Circle"
 import Vector from "ol/source"
-
+import Projection from 'ol/proj/Projection';
+import {transform} from 'ol/proj';
 import { Attribution, OverviewMap, Zoom } from "ol/control"
 import { Draw, Modify, Select } from "ol/interaction"
 import { Extent, boundingExtent, buffer } from "ol/extent"
 import { filterJobs } from "./geometryFilter"
-import { fromLonLat, transformExtent } from "ol/proj"
+import { fromLonLat, toLonLat, transformExtent } from "ol/proj"
 import { Job, SingleLocation } from "../types/customTypes"
 import { Map, Feature, } from "ol"
 import { SelectEvent } from "ol/interaction/Select"
@@ -29,6 +30,7 @@ import { metrics } from "./tracking"
 import { Jobs } from "../apis/jobs"
 import { geometryActions } from "../state/actions"
 import { Console } from "console"
+import { degrees2meters } from "./util"
 
 /**
  * Initial map configuration options.
@@ -144,10 +146,10 @@ export default class Atlas {
    * @returns
    * @memberof Atlas
    */
-  async search(query: string, kategorie?: number, fakultaet?: number, branche?: number[], postreq?: boolean): Promise<void> {
+  async search(query: string, kategorie?: number, fakultaet?: number, branche?: number[]): Promise<void> {
     if (query.length > 0) {
       const geojson = await new Charon().forwardGeocoding(query)
-  
+      
       if (geojson === undefined) {
         console.error("Could not find " + query)
         return
@@ -177,22 +179,28 @@ export default class Atlas {
       }
     }
   }
-  async radiusSearch(query: string,radius:number, kategorie?: number, fakultaet?: number, branche?: number[], postreq?: boolean): Promise<void> {
-    
-    
+/**
+ * 
+ * @param query  searchquery
+ * @param radius  radius in km
+ * @param kategorie  category of job as id
+ * @param fakultaet  
+ * @param branche  branche as id array
+ * @returns doing a radiussearch on the map
+ */
+  async radiusSearch(query: string,radius:number, kategorie?: number, fakultaet?: number, branche?: number[]): Promise<void> {
+    // Modify that Request goes to Our backend not to nominatim at forwardGeocoding2
     const geojson = await new Charon().forwardGeocoding2(query)
     if (geojson === undefined) {
       console.error("Could not find " + query)
        return
     }
-    console.log(geojson)
-    let feature = geojson.features
-    // Coordinate = [lat,lon]
-    let coordinate = feature[0].geometry.coordinates
-    
-    // Umrechnung reinbringen..
-    var circle = new Circle([1233119.1727253478,6352227.834181847],15000)
-    
+    // Coordinate = [lat,lon] = "EPSG:4236"
+    // Coordinate = [x in meter, y in meter] = "EPSG:3857"
+    let latlon = geojson.features[0].geometry.coordinates
+    let coordinate = degrees2meters(latlon[0],latlon[1])
+    // Circle Creation
+    var circle = new Circle(coordinate,radius*1000)
     var features = new Feature(circle)
     var vec = new VectorSource()
     var modify = new Modify({
@@ -209,7 +217,18 @@ export default class Atlas {
       name: "circle",
       overwrite: true,
     });
-    console.log("fertig")
+    //Modify Function
+    modify.on("modifyend", () => {
+      if(circle.getRadius() < 10*1000){
+        circle.setRadius(10*1000)
+        alert("Mindestradius beträgt 10km")
+      }
+      let rad = Math.floor(circle.getRadius() / 1000)
+      circle.setRadius(rad*1000)
+      document.getElementById("radVal")!.setAttribute("value",rad.toString())
+     
+    })
+    // Zoom into Circle
     this.zoomToExtent(circle.getExtent()) 
   }
 
