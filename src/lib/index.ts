@@ -12,6 +12,7 @@ import Sample from "../apis/sample"
 import { Draw } from "ol/interaction"
 import { SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG } from "constants"
 import Source from "ol/source/Source"
+import VectorLayer from "ol/layer/Vector"
 
 /**
  * Displays a list of jobs under the map.
@@ -94,14 +95,21 @@ const resetbutton = document.getElementById("resetter")
 const kategorie = document.getElementById("kategorie") as HTMLSelectElement
 const branche = document.getElementsByClassName("checkboxes") as HTMLCollectionOf<HTMLInputElement>
 // ResetterButton
-resetbutton?.addEventListener("click", () => {
+resetbutton!.addEventListener("click", () => {
   globalStore.dispatch("setVisibleJobs", globalStore.getState().allJobs)
   globalStore.dispatch("setSelectedGeometries",[])
   // Request for Jobs again... 
   new Jobs("https://raw.githubusercontent.com/chronark/atlas/master/static/rawJobs.json").get().then((jobs) => {
     globalStore.dispatch("setJobs", jobs)
   })
-  atlas.clearSource(atlas.getDrawLayer())
+  // remove Circle Layer
+  const allLayers = atlas.map.getLayers()
+  allLayers.forEach((layer) => {
+    if (layer.get("name") =="radiusCircle") {
+      atlas.map.removeLayer(layer)
+    }
+  })
+  // Zoom to Center
   atlas.zoomTo([0,0], 0)
 })
 // SubmitMethod

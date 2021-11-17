@@ -11,9 +11,6 @@ import VectorLayer from "ol/layer/Vector"
 import VectorSource from "ol/source/Vector"
 import View from "ol/View"
 import Circle from "ol/geom/Circle"
-import Vector from "ol/source"
-import Projection from 'ol/proj/Projection';
-import {transform} from 'ol/proj';
 import { Attribution, OverviewMap, Zoom } from "ol/control"
 import { Draw, Modify, Select } from "ol/interaction"
 import { Extent, boundingExtent, buffer } from "ol/extent"
@@ -200,36 +197,34 @@ export default class Atlas {
     let latlon = geojson.features[0].geometry.coordinates
     let coordinate = degrees2meters(latlon[0],latlon[1])
     // Circle Creation
+    var circleLayer = this.getCircleLayer("radiusCircle", true)
+    this.addLayer(circleLayer)
     var circle = new Circle(coordinate,radius*1000)
     var features = new Feature(circle)
-    var vec = new VectorSource()
+    circleLayer.getSource().addFeature(features)  
+    //Modify Add
     var modify = new Modify({
-      source: vec
+      source: circleLayer.getSource()
     })
     this.map.addInteraction(modify)
-    vec.addFeature(features)  
-    var layer = new VectorLayer({
-      source: vec,
-      style: polygonStyle(),
-    })
-    
-    this.addLayer(layer,{
-      name: "circle",
-      overwrite: true,
-    });
-    //Modify Function
+
+    //modify end Function
     modify.on("modifyend", () => {
-      if(circle.getRadius() < 10*1000){
-        circle.setRadius(10*1000)
-        alert("Mindestradius beträgt 10km")
-      }
-      let rad = Math.floor(circle.getRadius() / 1000)
-      circle.setRadius(rad*1000)
-      document.getElementById("radVal")!.setAttribute("value",rad.toString())
-     
+    if(circle.getRadius() < 10*1000){
+      circle.setRadius(10*1000)
+      alert("Mindestradius beträgt 10km")
+    }
+    let rad = Math.floor(circle.getRadius() / 1000)
+    circle.setRadius(rad*1000)
+    document.getElementById("radVal")!.setAttribute("value",rad.toString())
+    globalStore.dispatch("setSelectedGeometries",[circle])
     })
-    // Zoom into Circle
-    this.zoomToExtent(circle.getExtent()) 
+    //SelectedGeometries to be visible.
+    globalStore.dispatch("setSelectedGeometries",[circle])
+    //Zoom into Circle
+    setTimeout(()=>{this.zoomToExtent(circle.getExtent())},500) 
+    
+    
   }
 
   /**
@@ -399,6 +394,7 @@ export default class Atlas {
     if (this.map.getLayers().getArray().indexOf(layer) === -1 || overwrite) {
       if (name !== "") {
         layer.set("name", name)
+        
       }
       this.map.addLayer(layer)
     }
@@ -437,7 +433,8 @@ export default class Atlas {
       className: "",
       title: "Remove Circle Selection",
       handleClick: () => {
-        this.clearSource(this.getDrawLayer())
+        this.clearSource(this.getDrawLayer("drawLayer"))
+        this.clearSource(this.getDrawLayer("radiusCircle"))
       },
     })
   }
@@ -478,7 +475,7 @@ export default class Atlas {
        * @returns 
        */
       const getCircle = (): Geometry | undefined => {
-        const source = this.getDrawLayer().getSource()
+        const source = this.getDrawLayer("drawLayer").getSource()
         if (source.getFeatures().length === 1) {
           return source.getFeatures()[0].get("geometry")
         }
@@ -516,7 +513,7 @@ export default class Atlas {
       
       draw.on("drawend", () => {
         onEnd()
-        this.clearSource(this.getDrawLayer())
+        this.clearSource(this.getDrawLayer("drawLayer"))
       })
 
       modify.on("modifyend", () => {
@@ -524,7 +521,7 @@ export default class Atlas {
       })
     }
 
-    const drawLayer = this.getDrawLayer(true)
+    const drawLayer = this.getDrawLayer("drawLayer",true)
     this.map.addLayer(drawLayer)
     const modify = new Modify({
       source: drawLayer.getSource(),
@@ -552,8 +549,8 @@ export default class Atlas {
    * @returns
    * @memberof Atlas
    */
-  public getDrawLayer(clear?: boolean): VectorLayer {
-    let [layer, wasCreated] = this.getOrCreateLayer("drawLayer", {
+  private getDrawLayer(name: string,clear?: boolean): VectorLayer {
+    let [layer, wasCreated] = this.getOrCreateLayer(name, {
       source: new VectorSource(),
       // Sets the style after transformation
       style: polygonStyle(),
@@ -563,6 +560,26 @@ export default class Atlas {
       this.clearSource(layer)
     }
     layer.setZIndex(this.zIndices.circleSelect)
+    return layer
+  }
+  /**
+   * Create a new Layer with given name or return already existing layer with given name.
+   * The Vector Source is being cleared on already existing Layer.
+   * @param name Name of the Layer you want to add.
+   * @param clear false = create new Layer, true = clear Source of existing Layer
+   * @returns the layer with given name.
+   */
+  private getCircleLayer(name:string,clear?:boolean): VectorLayer {
+    let [layer, wasCreated] = this.getOrCreateLayer(name, {
+      source: new VectorSource(),
+      // Sets the style after transformation
+      style: polygonStyle(),
+    })
+    layer = layer as VectorLayer
+    if (!wasCreated && clear) {
+      this.clearSource(layer)
+    }
+    
     return layer
   }
 
@@ -599,7 +616,20 @@ export default class Atlas {
     })
     return filteredLayers
   }
-
+  /**
+   * Helper Function to check if a Layer exists. Check is done by name of Layer.
+   * @param name Name of the Layer which you want to check
+   * @returns Boolean Value true if Layer exists.
+   */
+  private mapContainsLayer(name: string): boolean{
+      const allLayers = this.map.getLayers()
+      allLayers.forEach( (layer) =>{
+        if( layer.get("name") === "radiusCircle" ){
+          return true;
+        } 
+      })
+      return false;
+  }
   /**
    * Try to get a layer by name or create a new one if it doesn't exist.
    *
