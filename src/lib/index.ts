@@ -132,10 +132,10 @@ if (searchField !== null && searchForm !== null) {
     // RadiusSearch ?? 
     if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
       console.log("radiussearching...")
-      atlas.radiusSearch(query,radQuery)
+      atlas.radiusSearch(query,radQuery,postreq)
     }
     else{
-      atlas.search(query)
+      atlas.search(query,postreq)
     }
     
     event.preventDefault()
@@ -143,7 +143,7 @@ if (searchField !== null && searchForm !== null) {
 }
 
 // Geht im Moment noch nicht, Quelle muss Request erlauben. CORS
-/*new Jobs().get().then( (jobs) => {
+ /*new Jobs().get().then( (jobs) => {
   atlas.setJobs(jobs)
 })*/
 /*Sample Creator 

@@ -143,8 +143,15 @@ export default class Atlas {
    * @returns
    * @memberof Atlas
    */
-  async search(query: string, kategorie?: number, fakultaet?: number, branche?: number[]): Promise<void> {
+  async search(query: string,postreq:boolean, kategorie?: number, fakultaet?: number, branche?: number[]): Promise<void> {
+    // 
     if (query.length > 0) {
+      /* POST and then setjobs..
+        if(postreq){
+        new Jobs().get().then((jobs)=>{
+          this.store.dispatch("setJobs",jobs)
+      }
+      })*/
       const geojson = await new Charon().forwardGeocoding(query)
       
       if (geojson === undefined) {
@@ -185,7 +192,7 @@ export default class Atlas {
  * @param branche  branche as id array
  * @returns doing a radiussearch on the map
  */
-  async radiusSearch(query: string,radius:number, kategorie?: number, fakultaet?: number, branche?: number[]): Promise<void> {
+  async radiusSearch(query: string,radius:number,postreq:boolean, kategorie?: number, fakultaet?: number, branche?: number[]): Promise<void> {
     // Modify that Request goes to Our backend not to nominatim at forwardGeocoding2
     const geojson = await new Charon().forwardGeocoding2(query)
     if (geojson === undefined) {
@@ -216,8 +223,10 @@ export default class Atlas {
     }
     let rad = Math.floor(circle.getRadius() / 1000)
     circle.setRadius(rad*1000)
-    document.getElementById("radVal")!.setAttribute("value",rad.toString())
+    
+    
     globalStore.dispatch("setSelectedGeometries",[circle])
+    document.getElementById("radVal")!.setAttribute("value",rad.toString())
     })
     //SelectedGeometries to be visible.
     globalStore.dispatch("setSelectedGeometries",[circle])
@@ -720,7 +729,7 @@ export default class Atlas {
       }),
       new Zoom(),
     ]
-
+    
     const map = new Map({
       target: this.mapID,
       controls: controls,
