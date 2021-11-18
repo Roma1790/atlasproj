@@ -91,9 +91,16 @@ const searchField = document.getElementById("searchField") as HTMLInputElement
 const radVal = document.getElementById("radVal") as HTMLInputElement
 const searchForm = document.getElementById("searchForm")
 const resetbutton = document.getElementById("resetter")
+const testerButton = document.getElementById("testerButton")
 // grade nicht verwendet const fakultaet = document.getElementById("fakultaet") as HTMLSelectElement
-const kategorie = document.getElementById("kategorie") as HTMLSelectElement
+const category = document.getElementById("kategorie") as HTMLSelectElement
 const branche = document.getElementsByClassName("checkboxes") as HTMLCollectionOf<HTMLInputElement>
+
+// If you want to test something...
+testerButton!.addEventListener("click",()=>{
+  
+})
+
 // ResetterButton
 resetbutton!.addEventListener("click", () => {
   globalStore.dispatch("setVisibleJobs", globalStore.getState().allJobs)
@@ -112,33 +119,48 @@ resetbutton!.addEventListener("click", () => {
   // Zoom to Center
   atlas.zoomTo([0,0], 0)
 })
-// SubmitMethod
+// Search Button 
 if (searchField !== null && searchForm !== null) {
   searchForm.addEventListener("submit", (event) => {
     let postreq = false; 
+    // todo: set the right id of categorys in html an save that value into variable
+    let categoryVal = category.selectedIndex.toString()
+    let brancheVal: string[] = new Array()
+    for(var counter= 0; counter <46;counter++){
+      if(branche.item(counter)?.checked){
+        brancheVal.push(branche.item(counter)?.getAttribute("value") as string)
+      }
+    }
     const query = searchField.value
     const radQuery = radVal.valueAsNumber
-    // FilterOptionen values müssen in id's übersetzt werden. 
-    let kategorieVal = kategorie.nodeValue 
-     // grade nicht verwendet let fakultaetVal = fakultaet.nodeValue 
-    let brancheVal : HTMLInputElement[] = new Array(46)
-    for(var counter:number = 0; counter<46; counter++){
-      brancheVal[counter] = branche.item(counter) as HTMLInputElement
+    console.log("category is now  :"+categoryVal+" and brancheVal is now  :"+brancheVal)
+    if(categoryVal!== "0"|| arrayContainsContent(brancheVal)){
+      postreq = true;
     }
-  
-    if(kategorieVal!==null || arrayContainsContent(brancheVal)){
-      postreq = true; 
-    }
-    // RadiusSearch ?? 
-    if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
-      console.log("radiussearching...")
-      atlas.radiusSearch(query,radQuery,postreq)
+    if(postreq){
+      if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
+        console.log("radiussearching... with post")
+        atlas.radiusSearch(query,radQuery,postreq,categoryVal,brancheVal)
+      }
+      else{
+        atlas.search(query,postreq,categoryVal,brancheVal)
+      }
+
     }
     else{
-      atlas.search(query,postreq)
+      if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
+        console.log("radiussearching... no post ")
+        atlas.radiusSearch(query,radQuery,postreq)
+      }
+      else{
+        atlas.search(query,postreq)
+      }
     }
+    // RadiusSearch ?? 
+    
     
     event.preventDefault()
+    
   })
 }
 

@@ -143,7 +143,7 @@ export default class Atlas {
    * @returns
    * @memberof Atlas
    */
-  async search(query: string,postreq:boolean, kategorie?: number, fakultaet?: number, branche?: number[]): Promise<void> {
+  async search(query: string,postreq:boolean, kategorie?: string, branche?: string[]): Promise<void> {
     // 
     if (query.length > 0) {
       /* POST and then setjobs..
@@ -192,7 +192,7 @@ export default class Atlas {
  * @param branche  branche as id array
  * @returns doing a radiussearch on the map
  */
-  async radiusSearch(query: string,radius:number,postreq:boolean, kategorie?: number, fakultaet?: number, branche?: number[]): Promise<void> {
+  async radiusSearch(query: string,radius:number,postreq:boolean, kategorie?: string,  branche?: string[]): Promise<void> {
     // Modify that Request goes to Our backend not to nominatim at forwardGeocoding2
     const geojson = await new Charon().forwardGeocoding2(query)
     if (geojson === undefined) {
@@ -448,19 +448,6 @@ export default class Atlas {
     })
   }
 
-  /**
-   * Remove layers from the map.
-   *
-   * @private
-   * @param names
-   * @memberof Atlas
-   */
-  private removeLayersByNames(names: string[]): void {
-    const layers = this.getLayersByNames(names)
-    layers.forEach((layer: BaseLayer) => {
-      this.map.removeLayer(layer)
-    })
-  }
 
   /**
    * Add the possibility to draw a circle on the map.
@@ -625,20 +612,7 @@ export default class Atlas {
     })
     return filteredLayers
   }
-  /**
-   * Helper Function to check if a Layer exists. Check is done by name of Layer.
-   * @param name Name of the Layer which you want to check
-   * @returns Boolean Value true if Layer exists.
-   */
-  private mapContainsLayer(name: string): boolean{
-      const allLayers = this.map.getLayers()
-      allLayers.forEach( (layer) =>{
-        if( layer.get("name") === "radiusCircle" ){
-          return true;
-        } 
-      })
-      return false;
-  }
+  
   /**
    * Try to get a layer by name or create a new one if it doesn't exist.
    *

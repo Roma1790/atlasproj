@@ -21,6 +21,7 @@
       </div>
       
     </div>
+    <button id="testerButton">TesterButton</button>
     <button id="resetter">Resetter</button>
     <form id="searchForm">
       <input id="searchField" type="text" placeholder="Ortssuche" />
@@ -62,7 +63,7 @@
       </span>-->
       <input type="button" id="auswahlBranche" onclick="zeigeBranchenliste()" value="Branche" /><br/>
       <!--script ist unnötig.. nur zum testen-->
-      <!--<script>
+      <script>
             let = zeigeBranchenliste= () => {
             let item = document.getElementById("checkboxes_branche")
             if(item.style.display == "none"){
@@ -73,7 +74,7 @@
             }
     
         }
-      </script> -->
+      </script> 
       <div class="checkbox_auswahl" id="checkboxes_branche" style="display:none"> 
           <label>
               <input type="checkbox" class="checkboxes" id="branche1" value="Abfallwirtschaft" name="branche" />&nbsp;Abfallwirtschaft

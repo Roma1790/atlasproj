@@ -111,7 +111,7 @@ export function carthesianProduct(array: any[][]): any[][] {
  */
 export function arrayContainsContent(array: Array<any>): boolean{
   for(var counter:number = 0; counter<array.length; counter++){
-    if(array[counter] !== null){
+    if(array[counter] !== (null || undefined) ){
       return true;
     }
   }
@@ -161,3 +161,5 @@ export function jobCategory(category: string): string{
   y = y * 20037508.34 / 180;
   return [x, y]
 }
+
+
