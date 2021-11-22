@@ -164,17 +164,19 @@ if (searchField !== null && searchForm !== null) {
   })
 }
 
-// Geht im Moment noch nicht, Quelle muss Request erlauben. CORS
- /*new Jobs().get().then( (jobs) => {
-  atlas.setJobs(jobs)
-})*/
-/*Sample Creator 
+// Geht im Moment noch nicht, Quelle muss Request erlauben. CORS Access-Control-Allow-Origin: https://atlas fehlt.
+/*
+ new Jobs().get().then( (jobs) => {
+  globalStore.dispatch("setJobs", jobs)
+})
+Sample Creator 
 let sample = new Sample()
 sample.jobs(5000).then( (jobs)=>{
   atlas.setJobs(jobs)
 })
 */
-// Using local source because of CORS problems.
+// Using local source .
+
 new Jobs("https://raw.githubusercontent.com/chronark/atlas/master/static/rawJobs.json").get().then((jobs) => {
   globalStore.dispatch("setJobs", jobs)
   
