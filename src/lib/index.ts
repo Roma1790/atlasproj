@@ -91,15 +91,9 @@ const searchField = document.getElementById("searchField") as HTMLInputElement
 const radVal = document.getElementById("radVal") as HTMLInputElement
 const searchForm = document.getElementById("searchForm")
 const resetbutton = document.getElementById("resetter")
-const testerButton = document.getElementById("testerButton")
 // grade nicht verwendet const fakultaet = document.getElementById("fakultaet") as HTMLSelectElement
 const category = document.getElementById("kategorie") as HTMLSelectElement
 const branche = document.getElementsByClassName("checkboxes") as HTMLCollectionOf<HTMLInputElement>
-
-// If you want to test something...
-testerButton!.addEventListener("click",()=>{
-  
-})
 
 // ResetterButton
 resetbutton!.addEventListener("click", () => {
@@ -122,6 +116,7 @@ resetbutton!.addEventListener("click", () => {
 // Search Button 
 if (searchField !== null && searchForm !== null) {
   searchForm.addEventListener("submit", (event) => {
+    event.preventDefault()
     let postreq = false; 
     // todo: set the right id of categorys in html an save that value into variable
     let categoryVal = category.selectedIndex.toString()
@@ -132,34 +127,33 @@ if (searchField !== null && searchForm !== null) {
       }
     }
     const query = searchField.value
-    const radQuery = radVal.valueAsNumber
+    const radQuery = parseInt(radVal.value)
+  
     console.log("category is now  :"+categoryVal+" and brancheVal is now  :"+brancheVal)
     if(categoryVal!== "0"|| arrayContainsContent(brancheVal)){
       postreq = true;
     }
-    if(postreq){
-      if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
+    if(postreq){      
+      // if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
         console.log("radiussearching... with post")
         atlas.radiusSearch(query,radQuery,postreq,categoryVal,brancheVal)
-      }
-      else{
-        atlas.search(query,postreq,categoryVal,brancheVal)
-      }
+      
+      // else{
+      //   atlas.search(query,postreq,categoryVal,brancheVal)
+      // }
 
     }
     else{
-      if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
+      // if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
         console.log("radiussearching... no post ")
         atlas.radiusSearch(query,radQuery,postreq)
-      }
-      else{
-        atlas.search(query,postreq)
-      }
+          // else{
+      //   atlas.search(query,postreq)
+      // }
     }
     // RadiusSearch ?? 
     
     
-    event.preventDefault()
     
   })
 }

@@ -1,6 +1,198 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-  <head>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Atlas</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/latest/css/ol.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol-ext@3.1.10/dist/ol-ext.min.css" />
+    <link rel="stylesheet" href="./style.css" />
+    <script src="list.js"></script>
+</head>
+
+<body>
+    <div id="justify-content">
+        <div id="upperSection">
+            <div id="searchFormBlock">
+                <form id="searchForm" autocomplete="off">
+                    <div id="leftForm"><select class="inputField" placeholder=" Kategorie" id="kategorie">
+                            <option value="Kategorie" selected="selected">Kategorie</option>
+                            <option value="Jobtyp_ID=9">Praktikum im Studium</option>
+                            <option value="Jobtyp_ID=7">Bachelor- oder Masterarbeit</option>
+                            <option value="Jobtyp_ID=15">Stelle für Doktorandinnen u. Doktoranden</option>
+                            <option value="Jobtyp_ID=20">Stelle für Duales Studium / Dualer Studienplatz</option>
+                            <option value="Jobtyp_ID=10">Werkstudierendentätigkeit</option>
+                            <option value="Jobtyp_ID=6">Job für Studierende</option>
+                            <option value="Jobtyp_ID=3">Stelle für Absolventinnen u. Absolventen</option>
+                            <option value="Jobtyp_ID=11">Traineeprogramm</option>
+                            <option value="Jobtyp_ID=12">Stelle, die erste Berufserfahrung voraussetzt</option>
+                            <option value="Jobtyp_ID=19">Stellen für Studienabbrecher/-innen</option>
+                        </select>
+                        <div id="KT_1__"><input type="button" name="KT_1" id="KT_1_button" onclick="list_visible()"
+                                value=" Branche" placeholder=" Branche" class="inputField">
+                            <div class="checkbox_auswahl" id="KT_1_list" style="display: none;"><input type="checkbox"
+                                    class="checkboxes" id="KT_1_1" value="1" name="KT_1"
+                                    onchange="list_change('KT_1_1')"><label for="KT_1_1"
+                                    id="KT_1_1_label">&nbsp;Abfallwirtschaft</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_2" value="2" name="KT_1"
+                                    onchange="list_change('KT_1_2')"><label for="KT_1_2"
+                                    id="KT_1_2_label">&nbsp;Anlagen- und Maschinenbau</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_141" value="141" name="KT_1"
+                                    onchange="list_change('KT_1_141')"><label for="KT_1_141"
+                                    id="KT_1_141_label">&nbsp;Automatisierungstechnik</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_140" value="140" name="KT_1"
+                                    onchange="list_change('KT_1_140')"><label for="KT_1_140"
+                                    id="KT_1_140_label">&nbsp;Automobilbau</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_3" value="3" name="KT_1"
+                                    onchange="list_change('KT_1_3')"><label for="KT_1_3" id="KT_1_3_label">&nbsp;Banken,
+                                    Versicherung, Immobilien, Finanzdienstleistung</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_4" value="4" name="KT_1"
+                                    onchange="list_change('KT_1_4')"><label for="KT_1_4"
+                                    id="KT_1_4_label">&nbsp;Bauwesen, Architektur</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_5" value="5" name="KT_1"
+                                    onchange="list_change('KT_1_5')"><label for="KT_1_5"
+                                    id="KT_1_5_label">&nbsp;Bergbau</label><br><input type="checkbox" class="checkboxes"
+                                    id="KT_1_6" value="6" name="KT_1" onchange="list_change('KT_1_6')"><label
+                                    for="KT_1_6" id="KT_1_6_label">&nbsp;Bildung&amp;Training</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_7" value="7" name="KT_1"
+                                    onchange="list_change('KT_1_7')"><label for="KT_1_7"
+                                    id="KT_1_7_label">&nbsp;Biotechnik, Pharmazie</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_8" value="8" name="KT_1"
+                                    onchange="list_change('KT_1_8')"><label for="KT_1_8" id="KT_1_8_label">&nbsp;Chemie-
+                                    und erdölverarbeitende Industrie</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_9" value="9" name="KT_1"
+                                    onchange="list_change('KT_1_9')"><label for="KT_1_9" id="KT_1_9_label">&nbsp;Druck,
+                                    Papier und Verpackungsindustrie</label><br><input type="checkbox" class="checkboxes"
+                                    id="KT_1_11" value="11" name="KT_1" onchange="list_change('KT_1_11')"><label
+                                    for="KT_1_11" id="KT_1_11_label">&nbsp;Einzel-, Groß- und
+                                    Außenhandel</label><br><input type="checkbox" class="checkboxes" id="KT_1_10"
+                                    value="10" name="KT_1" onchange="list_change('KT_1_10')"><label for="KT_1_10"
+                                    id="KT_1_10_label">&nbsp;Elektrotechnik, Feinmechanik, Optik</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_12" value="12" name="KT_1"
+                                    onchange="list_change('KT_1_12')"><label for="KT_1_12"
+                                    id="KT_1_12_label">&nbsp;Energie-/Wasserversorgung</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_13" value="13" name="KT_1"
+                                    onchange="list_change('KT_1_13')"><label for="KT_1_13"
+                                    id="KT_1_13_label">&nbsp;Fahrzeugbau/-zulieferer</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_14" value="14" name="KT_1"
+                                    onchange="list_change('KT_1_14')"><label for="KT_1_14"
+                                    id="KT_1_14_label">&nbsp;Gastronomie, Touristik</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_15" value="15" name="KT_1"
+                                    onchange="list_change('KT_1_15')"><label for="KT_1_15"
+                                    id="KT_1_15_label">&nbsp;Gesundheit, Soziale Dienste</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_16" value="16" name="KT_1"
+                                    onchange="list_change('KT_1_16')"><label for="KT_1_16"
+                                    id="KT_1_16_label">&nbsp;Glas, Keramik</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_17" value="17" name="KT_1"
+                                    onchange="list_change('KT_1_17')"><label for="KT_1_17"
+                                    id="KT_1_17_label">&nbsp;Holz- und Möbelindustrie</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_18" value="18" name="KT_1"
+                                    onchange="list_change('KT_1_18')"><label for="KT_1_18"
+                                    id="KT_1_18_label">&nbsp;Ingenieurdienstleistung</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_19" value="19" name="KT_1"
+                                    onchange="list_change('KT_1_19')"><label for="KT_1_19"
+                                    id="KT_1_19_label">&nbsp;Internet</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_20" value="20" name="KT_1"
+                                    onchange="list_change('KT_1_20')"><label for="KT_1_20"
+                                    id="KT_1_20_label">&nbsp;IT-Dienstleistung, EDV-Schulung</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_21" value="21" name="KT_1"
+                                    onchange="list_change('KT_1_21')"><label for="KT_1_21"
+                                    id="KT_1_21_label">&nbsp;IT-Hardware – Programmierung und Design</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_22" value="22" name="KT_1"
+                                    onchange="list_change('KT_1_22')"><label for="KT_1_22"
+                                    id="KT_1_22_label">&nbsp;IT-Softwareentwicklung</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_23" value="23" name="KT_1"
+                                    onchange="list_change('KT_1_23')"><label for="KT_1_23"
+                                    id="KT_1_23_label">&nbsp;Konsumgüter</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_24" value="24" name="KT_1"
+                                    onchange="list_change('KT_1_24')"><label for="KT_1_24"
+                                    id="KT_1_24_label">&nbsp;Kunst, Kultur</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_143" value="143" name="KT_1"
+                                    onchange="list_change('KT_1_143')"><label for="KT_1_143"
+                                    id="KT_1_143_label">&nbsp;Kunststoffindustrie, -verarbeitung</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_26" value="26" name="KT_1"
+                                    onchange="list_change('KT_1_26')"><label for="KT_1_26"
+                                    id="KT_1_26_label">&nbsp;Land-, Forst-, Fischwirtschaft</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_27" value="27" name="KT_1"
+                                    onchange="list_change('KT_1_27')"><label for="KT_1_27"
+                                    id="KT_1_27_label">&nbsp;Luft- und Raumfahrt</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_28" value="28" name="KT_1"
+                                    onchange="list_change('KT_1_28')"><label for="KT_1_28"
+                                    id="KT_1_28_label">&nbsp;Management, Beratung</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_29" value="29" name="KT_1"
+                                    onchange="list_change('KT_1_29')"><label for="KT_1_29"
+                                    id="KT_1_29_label">&nbsp;Marketing, Werbung &amp; PR</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_144" value="144" name="KT_1"
+                                    onchange="list_change('KT_1_144')"><label for="KT_1_144"
+                                    id="KT_1_144_label">&nbsp;Marktforschung</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_30" value="30" name="KT_1"
+                                    onchange="list_change('KT_1_30')"><label for="KT_1_30"
+                                    id="KT_1_30_label">&nbsp;Medien</label><br><input type="checkbox" class="checkboxes"
+                                    id="KT_1_31" value="31" name="KT_1" onchange="list_change('KT_1_31')"><label
+                                    for="KT_1_31" id="KT_1_31_label">&nbsp;Medizintechnik</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_25" value="25" name="KT_1"
+                                    onchange="list_change('KT_1_25')"><label for="KT_1_25"
+                                    id="KT_1_25_label">&nbsp;Metall</label><br><input type="checkbox" class="checkboxes"
+                                    id="KT_1_32" value="32" name="KT_1" onchange="list_change('KT_1_32')"><label
+                                    for="KT_1_32" id="KT_1_32_label">&nbsp;Nahrungs- und Genussmittel</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_33" value="33" name="KT_1"
+                                    onchange="list_change('KT_1_33')"><label for="KT_1_33"
+                                    id="KT_1_33_label">&nbsp;Öffentlicher Dienst und Verbände</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_34" value="34" name="KT_1"
+                                    onchange="list_change('KT_1_34')"><label for="KT_1_34"
+                                    id="KT_1_34_label">&nbsp;Personaldienstleistung</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_142" value="142" name="KT_1"
+                                    onchange="list_change('KT_1_142')"><label for="KT_1_142"
+                                    id="KT_1_142_label">&nbsp;Petrochemie</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_35" value="35" name="KT_1"
+                                    onchange="list_change('KT_1_35')"><label for="KT_1_35"
+                                    id="KT_1_35_label">&nbsp;Recht, Steuern, Finanzen, Controlling</label><br><input
+                                    type="checkbox" class="checkboxes" id="KT_1_37" value="37" name="KT_1"
+                                    onchange="list_change('KT_1_37')"><label for="KT_1_37"
+                                    id="KT_1_37_label">&nbsp;Sonstige Branche</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_36" value="36" name="KT_1"
+                                    onchange="list_change('KT_1_36')"><label for="KT_1_36"
+                                    id="KT_1_36_label">&nbsp;Sonstige Dienstleistung</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_38" value="38" name="KT_1"
+                                    onchange="list_change('KT_1_38')"><label for="KT_1_38"
+                                    id="KT_1_38_label">&nbsp;Telekommunikation</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_39" value="39" name="KT_1"
+                                    onchange="list_change('KT_1_39')"><label for="KT_1_39"
+                                    id="KT_1_39_label">&nbsp;Textil, Leder, Bekleidung</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_40" value="40" name="KT_1"
+                                    onchange="list_change('KT_1_40')"><label for="KT_1_40"
+                                    id="KT_1_40_label">&nbsp;Verkehr, Lager, Logistik</label><br><input type="checkbox"
+                                    class="checkboxes" id="KT_1_41" value="41" name="KT_1"
+                                    onchange="list_change('KT_1_41')"><label for="KT_1_41"
+                                    id="KT_1_41_label">&nbsp;Wissenschaft, Forschung &amp; Entwicklung</label><br></div>
+                        </div><input class="inputField" placeholder=" Stichwortsuche">
+                    </div>
+                    <div id="rightForm"><input class="inputField" placeholder=" Ort" id="searchField">
+                        <div id="radText">
+                            <p>In einem <input maxlength="3" class="radChange" id="radVal"> km Radius</p>
+                        </div><input type="button" class="upperSectionButton" onclick="more_options()"
+                            value="Mehr Optionen"> <button class="upperSectionButton" id="searchSubmit"
+                            type="submit">Suche</button> <button id="resetter">Resetter</button>
+                        <div><span>All Jobs</span> <span id="allJobsCounter"></span></div>
+                        <div><span>Visible Jobs</span> <span id="visibleJobsCounter"></span></div>
+                        <div id="more_options_div" style="display: none;"></div>
+                    </div>
+                </form>
+            </div>
+            <div id="jobs"></div>
+        </div>
+        <div id="map-container"></div>
+    </div>
+    <script src="vendors~main.atlas.js"></script>
+    <script src="atlas.js"></script>
+    <script src="vendors~main.atlas.js"></script>
+    <script src="atlas.js"></script>
+    <script src="vendors~main.atlas.js"></script>
+    <script src="atlas.js"></script>
+    <script src="vendors~main.atlas.js"></script>
+    <script src="atlas.js"></script>
+</body>
+  <!-- <head>
     <meta charset="utf-8" />
     <title>Atlas</title>
 
@@ -43,7 +235,7 @@
           <option value="Jobtyp_ID=19">Stellen für Studienabbrecher/-innen</option>
         </select>
       </span>
-      <!--Wird im Moment nicht verwendet-->
+      Wird im Moment nicht verwendet-->
       <!--<span class="icon">
         <select name="fakultaet" id="fakultaet">
           <option value="Fakultät" selected>Fakultät</option>
@@ -60,9 +252,9 @@
           <option value="Verfahrenstechnik">Verfahrenstechnik</option>
           <option value="Werkstofftechnik">Werkstofftechnik</option>
         </select>
-      </span>-->
+      </span>
       <input type="button" id="auswahlBranche" onclick="zeigeBranchenliste()" value="Branche" /><br/>
-      <!--script ist unnötig.. nur zum testen-->
+      script ist unnötig.. nur zum testen
       <script>
             let = zeigeBranchenliste= () => {
             let item = document.getElementById("checkboxes_branche")
@@ -232,5 +424,5 @@
       style="height: 500px; overflow: hidden; border-radius: 5px; margin: 25px; background-color: #ffffff;"
     ></div>
     <div id="jobs"></div>
-  </body>
+  </body> -->
 </html>
