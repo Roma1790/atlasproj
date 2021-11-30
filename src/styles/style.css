@@ -1,0 +1,151 @@
+
+*{
+    margin: 0;
+    padding: 0;
+}
+#justify-content
+{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    height: 800px;
+    background-color: lightblue;
+}
+
+#upperSection {
+    /* border: 2px solid black; */
+
+    display: flex;
+    justify-content: space-between;
+    
+    height: 300px;
+}
+#searchFormBlock {
+    /* border: 2px solid black; */
+
+    margin-right: 2%;
+    width: 800px;
+    height: auto;
+    
+}
+#jobs {
+    /* border: 2px solid black; */
+
+    width:49%;
+    height: auto;
+    overflow: auto;
+}
+#searchForm{
+    display:flex;
+    flex-wrap:wrap;
+}
+select{
+    background-color: white;
+    box-sizing: content-box;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+.inputField {
+    width: 350px;
+    height: 40px;
+    margin: 5px;
+    margin-bottom: 0;
+    border-radius: 5px;
+    box-shadow: 1px 1px 5px rgba(0,0,0,0.5),
+            inset 1px 1px 5px rgba(0,0,0,0.5);
+    box-sizing: content-box;
+    display: block;
+    padding-left: 2px;
+    padding-right: 2px;
+    background-color: white;
+    text-align: left;
+}
+.radChange{
+    width: 24px;
+}
+#radText{
+    min-height: 45.2px;
+    margin: 5px;
+    display: flex;
+    align-items: center;
+}
+
+
+/*
+#upperSectionButtons{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+.upperSectionButton{
+    width: 100%;
+    height: auto;
+    margin: 5px;
+    font-size: 14px;
+}
+#searchSubmit{
+    width:49%;
+    height: 40px;
+    margin: 5px;
+    font-size: 14pt;
+    
+}
+#userTest {
+    position: absolute; 
+    right: 50px;
+    top: 20px;
+}
+#anzeige {
+    background-color: red;
+} */
+#map-container {
+    border: 2px solid grey;
+    height: 4000px;
+    overflow: hidden;
+    margin: 1px;
+    background-color: #ffffff;
+}
+
+.checkbox_auswahl{    
+    background-color: rgba(255, 255, 255, 1);
+    color: black;
+    font-size: 1em;
+    width: 357px;
+    z-index: 2;
+    box-shadow:  1px 1px 3px #4f4f4f,
+             0px 0px 0px #ffffff;
+    border-radius: 4px;
+    border: 1px solid lightgrey;
+    height: 60%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    position: absolute;
+    margin:0;
+    margin-left: 5px;
+    padding: 0;
+    white-space:nowrap;  
+}
+
+.checkbox_auswahl input {
+    margin-top:0;
+    margin-bottom:8px;
+    padding-top:3px;
+}
+.checkbox_auswahl label {
+    padding-top:3px;
+    width:100%;
+    display:inline-block;
+    line-height:normal;
+}
+
+.checkbox_auswahl label:hover {
+    background-color: #EBF0F7;
+}
+.checkbox_auswahl input:checked + label {
+    background-color: #FFFFED;
+}
+
+.checkboxes{
+    width: 15px!important;
+    height: 15px!important;
+}
