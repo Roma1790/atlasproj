@@ -1,5 +1,4 @@
 import { Area, Job, Location, SingleLocation } from "../types/customTypes"
-
 import AnimatedCluster from "ol-ext/layer/AnimatedCluster"
 import Cluster from "ol/source/Cluster"
 import Feature from "ol/Feature"
@@ -11,8 +10,7 @@ import VectorSource from "ol/source/Vector"
 import { fromLonLat } from "ol/proj.js"
 import { isSingleLocation } from "./util"
 import { Select } from "ol/interaction"
-import { Style } from "ol/style"
-import { Color } from "../styles/color"
+
 /**
  * The Joblayer is responsible for displaying and animating as clusters.
  *
@@ -25,7 +23,7 @@ export default class JobLayer {
   public animatedCluster: VectorLayer
   public areas: VectorLayer
   private style: JobStyle
-  private select: Select
+
 
   /**
    *Creates an instance of JobLayer.
@@ -88,7 +86,7 @@ export default class JobLayer {
           newFeature.set("job", job, false)
           points.push(newFeature)
         } else {
-          console.log("da ist was passiert.")
+          // never called
           const newArea = this.createAreaFeature(location)
           newArea.set("job", job, false)
           areas.push(newArea)

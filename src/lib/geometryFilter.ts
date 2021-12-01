@@ -1,6 +1,5 @@
 import { bboxToExtent, isSingleLocation } from "./util"
 import { containsXY, intersects } from "ol/extent"
-
 import { Geometry } from "ol/geom"
 import { Job } from "../types/customTypes"
 import { fromLonLat } from "ol/proj"

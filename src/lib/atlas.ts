@@ -3,7 +3,6 @@ import BaseLayer from "ol/layer/Base"
 import Button from "ol-ext/control/Button"
 import Charon from "../apis/charon"
 import FullScreen from "ol/control/FullScreen"
-import Geometry from "ol/geom/Geometry"
 import JobLayer from "./jobLayer"
 import polygonStyle from "../styles/polygon"
 import SelectionLayer from "./selectionLayer"
@@ -12,21 +11,17 @@ import VectorSource from "ol/source/Vector"
 import View from "ol/View"
 import Circle from "ol/geom/Circle"
 import { Attribution, OverviewMap, Zoom } from "ol/control"
-import { Draw, Modify, Select } from "ol/interaction"
-import { Extent, boundingExtent, buffer } from "ol/extent"
+import { Modify } from "ol/interaction"
+import { Extent, boundingExtent} from "ol/extent"
 import { filterJobs } from "./geometryFilter"
-import { fromLonLat, toLonLat, transformExtent } from "ol/proj"
+import { fromLonLat, transformExtent } from "ol/proj"
 import { Job, SingleLocation } from "../types/customTypes"
 import { Map, Feature, } from "ol"
-import { SelectEvent } from "ol/interaction/Select"
-import { shiftKeyOnly } from "ol/events/condition"
 import { State, Store, globalStore } from "../state/store"
 import TileLayer from "ol/layer/Tile"
 import OSM from "ol/source/OSM"
 import { metrics } from "./tracking"
 import { Jobs } from "../apis/jobs"
-import { geometryActions } from "../state/actions"
-import { Console } from "console"
 import { degrees2meters } from "./util"
 
 /**
@@ -94,16 +89,12 @@ export default class Atlas {
     this.selectionLayer = this.createSelectionLayer()
     this.map.addLayer(this.selectionLayer)
     this.addControls()
-    this.addCircleSelect()
     this.buildJobLayer()
     this.addVisibleJobsHook()
     this.addGeometriesHook()
     this.addJobFilterHook()
-    
-
     this.addCountries()
-
-    this.addSelect()
+    
   }
 
   /**
@@ -281,54 +272,6 @@ export default class Atlas {
      // Geometrien werden angewählt, muss abgewählt werden...
      globalStore.dispatch("unselectGeometries", globalStore.getState().selectedGeometries)
   }
-   
-  /**
-   * Add the possibilty to select features.
-   *
-   * This handles the countries to be selected as well as clicking on job clusters.
-   */
-  private addSelect(): void {
-    const select = new Select()
-
-    this.map.addInteraction(select)
-    select.on("select", (e: SelectEvent) => {
-      metrics.addSelect()
-      // Remove all selected geometries when the user clicks on empty space
-      if (e.selected.length === 0) {
-        globalStore.dispatch("unselectGeometries", globalStore.getState().selectedGeometries)
-      }
-
-      e.target.getFeatures().forEach((f: Feature) => {
-        const layerName = select.getLayer(f).get("name")
-
-        switch (layerName) {
-          case "cluster": {
-            const clickedClusters = f.get("features")
-            const clickedJobs: Job[] = clickedClusters.map((f: Feature) => f.get("job"))
-
-            globalStore.dispatch("setSelectedJobs", clickedJobs)
-            break
-          }
-
-          case "selectionLayer": {
-            const geometry = f.getGeometry()
-            const isSelected = globalStore.getState().selectedGeometries.includes(geometry)
-            console.log(isSelected + "Als Ergebnis nach Click")
-            // Select kann nicht 2 mal hintereinander Selecten...
-            if (isSelected) {
-              globalStore.dispatch("unselectGeometries", [geometry])
-            } else {
-              globalStore.dispatch("selectGeometries", [geometry])
-            }
-            
-            
-            break
-          }
-        }
-      })
-    })
-  }
-
   /**
    * Create a new Polygon layer and add the onClick event listener.
    *
@@ -447,96 +390,6 @@ export default class Atlas {
       },
     })
   }
-
-
-  /**
-   * Add the possibility to draw a circle on the map.
-   *
-   * TODO: Refactor this outside of the map class.
-   *
-   * @private
-   * @memberof Atlas
-   */
-  private addCircleSelect(): void {
-    /**
-     * Calls the necessary functions to filter through visible jobs after drawing.
-     *
-     * @param draw
-     * @param modify
-     */
-    const handleCircleSelectEvents = (draw: Draw, modify: Modify): void => {
-      /**
-       * Retrieve the circle element from the map in case it exists.
-       *
-       * @returns 
-       */
-      const getCircle = (): Geometry | undefined => {
-        const source = this.getDrawLayer("drawLayer").getSource()
-        if (source.getFeatures().length === 1) {
-          return source.getFeatures()[0].get("geometry")
-        }
-        console.log("returning undefinded")
-        return undefined
-      }
-      /**
-       * Update the visible jobs after filtering them.
-       *
-       * The getCircle method in itself is not async, however the underlying code
-       * seems to to store the circle asyncronously.
-       *
-       * Heres a little hack to wait up to 1 second and retry every 100ms to load
-       * the circle and apply the selection.
-       */
-      const onEnd = async (): Promise<void> => {
-        let circle: any
-        let limit = 1000
-        const interval = 100
-        
-        while (!circle && limit > 0) {
-          circle = getCircle()
-          limit -= interval
-          await new Promise((resolve) => setTimeout(resolve, interval))
-        }
-
-        if (circle) {
-          const filteredJobs = filterJobs(globalStore.getState().allJobs, {
-            geometries: globalStore.getState().selectedGeometries,
-            circle: circle,
-          })
-          globalStore.dispatch("setVisibleJobs", filteredJobs)
-        }
-      }
-      
-      draw.on("drawend", () => {
-        onEnd()
-        this.clearSource(this.getDrawLayer("drawLayer"))
-      })
-
-      modify.on("modifyend", () => {
-        onEnd()
-      })
-    }
-
-    const drawLayer = this.getDrawLayer("drawLayer",true)
-    this.map.addLayer(drawLayer)
-    const modify = new Modify({
-      source: drawLayer.getSource(),
-    })
-    this.map.addInteraction(modify)
-
-    const draw = new Draw({
-      source: drawLayer.getSource(),
-      // @ts-ignore
-      type: "Circle",
-      wrapX: true,
-      condition: shiftKeyOnly,
-      // Sets the style during first transformation
-      style: polygonStyle(),
-    })
-    handleCircleSelectEvents(draw, modify)
-    this.map.addInteraction(draw)
-  }
-
   /**
    * Get or create a new layer to draw on.
    *

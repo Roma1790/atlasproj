@@ -1,6 +1,5 @@
 import { Action, actions } from "./actions"
 import { Mutation, mutations } from "./mutations"
-
 import Events from "./events"
 import { Geometry } from "ol/geom"
 import { Job } from "../types/customTypes"
@@ -17,7 +16,8 @@ export type State = {
 
 /**
  * Create a fresh state.
- * I had issues where the initialState was changed by side effects. So instead of defining this as an object, it returns a new object every time it is called.
+ * I had issues where the initialState was changed by side effects. 
+ * So instead of defining this as an object, it returns a new object every time it is called.
  *
  * @returns
  */

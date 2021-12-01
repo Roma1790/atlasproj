@@ -1,11 +1,10 @@
 import { Stroke, Style, Text } from "ol/style.js"
-
 import { Color } from "./color"
 import { Feature } from "ol"
 import Fill from "ol/style/Fill"
-import { Job, SingleLocation } from "../types/customTypes"
+import { Job} from "../types/customTypes"
 import RegularShape from "ol/style/RegularShape"
-import { bound, isSingleLocation } from "../lib/util"
+import { bound } from "../lib/util"
 import CircleStyle from 'ol/style/Circle';
 
 /**

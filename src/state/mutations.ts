@@ -1,7 +1,6 @@
 import { removeListFromList, unique } from "../lib/util"
-
-import { Geometry } from "ol/geom"
 import { Job } from "../types/customTypes"
+import { Geometry } from "ol/geom"
 import { State } from "./store"
 
 export type Mutation = (state: State, payload: any) => boolean

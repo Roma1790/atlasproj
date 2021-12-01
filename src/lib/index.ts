@@ -2,17 +2,11 @@
 import Charon from "../apis/charon"
 import { Jobs } from "../apis/jobs"
 import { globalStore, State } from "../state/store"
-import { Job, GeocodingResponseObject, SingleLocation } from "../types/customTypes"
+import { Job, SingleLocation } from "../types/customTypes"
 import Atlas from "./atlas"
 import { arrayContainsContent, isSingleLocation } from "./util"
 import { metrics } from "./tracking"
-import { globalAgent } from "http"
-import { Geometry } from "ol/geom"
-import Sample from "../apis/sample"
-import { Draw } from "ol/interaction"
-import { SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG } from "constants"
-import Source from "ol/source/Source"
-import VectorLayer from "ol/layer/Vector"
+
 
 /**
  * Displays a list of jobs under the map.
@@ -151,10 +145,6 @@ if (searchField !== null && searchForm !== null) {
       //   atlas.search(query,postreq)
       // }
     }
-    // RadiusSearch ?? 
-    
-    
-    
   })
 }
 
@@ -194,10 +184,6 @@ new Jobs("https://raw.githubusercontent.com/chronark/atlas/master/static/rawJobs
     }
   })*/
 })
-
-
-
-
 
 //#region UserVerhalten Erfassung
 const startButton = document.getElementById("start")
