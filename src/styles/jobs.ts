@@ -6,6 +6,7 @@ import { Job} from "../types/customTypes"
 import RegularShape from "ol/style/RegularShape"
 import { bound } from "../lib/util"
 import CircleStyle from 'ol/style/Circle';
+import { Geometry } from "ol/geom"
 
 /**
  * Create a style for job clusters based on their score and proximity to each other.
@@ -74,7 +75,7 @@ export default class JobStyle {
    * @returns The score of the best matching job.
    * @memberof JobStyle
    */
-  private maxScore(features: Feature[]): number {
+  private maxScore(features: Feature<Geometry>[]): number {
     let maxScore = 0
     for (const feature of features) {
       const job: Job = feature.get("job")
@@ -153,8 +154,8 @@ export default class JobStyle {
    * @returns
    * @memberof JobStyle
    */
-  public clusterStyle(cluster: Feature): Style[] {
-    const features: Feature[] = cluster.get("features")
+  public clusterStyle(cluster: Feature<Geometry>): Style[] {
+    const features: Feature<Geometry>[] = cluster.get("features")
     const size = features.length 
     const score = this.maxScore(features)
    
@@ -173,7 +174,7 @@ export default class JobStyle {
    * @returns
    * @memberof JobStyle
    */
-  public areaStyle(feature: Feature): Style {
+  public areaStyle(feature: Feature<Geometry>): Style {
     const color = this.colorByScore(this.getScore(feature))
     return new Style({
       stroke: new Stroke({
@@ -194,8 +195,8 @@ export default class JobStyle {
    * @returns
    * @memberof JobStyle
    */
-  private getScore(feature: Feature): number {
-    const subfeatures: Feature[] = feature.get("features")
+  private getScore(feature: Feature<Geometry>): number {
+    const subfeatures: Feature<Geometry>[] = feature.get("features")
 
     if (subfeatures && subfeatures.length === 1) {
       const job: Job = subfeatures[0].get("job")

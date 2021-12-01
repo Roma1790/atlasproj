@@ -11,7 +11,7 @@ import VectorSource from "ol/source/Vector"
 import View from "ol/View"
 import Circle from "ol/geom/Circle"
 import { Attribution, OverviewMap, Zoom } from "ol/control"
-import { Modify } from "ol/interaction"
+import { Modify, Select } from "ol/interaction"
 import { Extent, boundingExtent} from "ol/extent"
 import { filterJobs } from "./geometryFilter"
 import { fromLonLat, transformExtent } from "ol/proj"
@@ -23,6 +23,9 @@ import OSM from "ol/source/OSM"
 import { metrics } from "./tracking"
 import { Jobs } from "../apis/jobs"
 import { degrees2meters } from "./util"
+import Layer from "ol/layer/Layer"
+import { Geometry } from "ol/geom"
+import { SelectEvent } from "ol/interaction/Select"
 
 /**
  * Initial map configuration options.
@@ -94,6 +97,7 @@ export default class Atlas {
     this.addGeometriesHook()
     this.addJobFilterHook()
     this.addCountries()
+    this.addSelect()
     
   }
 
@@ -163,13 +167,13 @@ export default class Atlas {
       
       globalStore.dispatch("setSelectedGeometries",[geometry])
       // Zoom out when your zoomed in
-      if(zoom > 4){
+      if(zoom as number > 4){
         // Timeout to give the map time to update its view with visible jobs
-        setTimeout( () => {this.zoomTo(viewcenter, 4)}, 400)
-        setTimeout( () => {this.zoomToExtent(geometry.getExtent())}, 3700)
+        setTimeout( () => {this.zoomTo(viewcenter as number[], 4)}, 400)
+        setTimeout( () => {this.zoomToExtent((geometry as Geometry).getExtent())}, 3700)
       }
       else{
-        setTimeout(()=>{this.zoomToExtent(geometry.getExtent())}, 400)
+        setTimeout(()=>{this.zoomToExtent((geometry as Geometry).getExtent())}, 400)
         
       }
     }
@@ -257,6 +261,28 @@ export default class Atlas {
     this.map.getView().fit(extent, {duration: 3000, maxZoom: 16 })
     
   }
+   /**
+   * Add the possibilty to select features.
+   *
+   * This handles the countries to be selected as well as clicking on job clusters.
+   */
+    private addSelect(): void {
+      const select = new Select({
+        layers: [this.JobLayer.animatedCluster]
+      })
+  
+      this.map.addInteraction(select)
+      select.on("select", (e: SelectEvent) => {
+        var selectedFeatures = select.getFeatures()
+        selectedFeatures.forEach((f: Feature<Geometry>) => {
+          const clickedClusters = f.get("features")
+          const clickedJobs: Job[] = clickedClusters.map((f: Feature<Geometry>) => f.get("job"))
+          globalStore.dispatch("setSelectedJobs", clickedJobs)
+        })
+      })
+    }
+
+
 
   /**
    * Load initial set of countries and add them to the map without showing them to the user.
@@ -398,13 +424,13 @@ export default class Atlas {
    * @returns
    * @memberof Atlas
    */
-  private getDrawLayer(name: string,clear?: boolean): VectorLayer {
+  private getDrawLayer(name: string,clear?: boolean): VectorLayer<VectorSource<Geometry>> {
     let [layer, wasCreated] = this.getOrCreateLayer(name, {
       source: new VectorSource(),
       // Sets the style after transformation
       style: polygonStyle(),
     })
-    layer = layer as VectorLayer
+    layer = layer as VectorLayer<VectorSource<Geometry>>
     if (!wasCreated && clear) {
       this.clearSource(layer)
     }
@@ -418,13 +444,13 @@ export default class Atlas {
    * @param clear false = create new Layer, true = clear Source of existing Layer
    * @returns the layer with given name.
    */
-  private getCircleLayer(name:string,clear?:boolean): VectorLayer {
+  private getCircleLayer(name:string,clear?:boolean): VectorLayer<VectorSource<Geometry>> {
     let [layer, wasCreated] = this.getOrCreateLayer(name, {
       source: new VectorSource(),
       // Sets the style after transformation
       style: polygonStyle(),
     })
-    layer = layer as VectorLayer
+    layer = layer as VectorLayer<VectorSource<Geometry>>
     if (!wasCreated && clear) {
       this.clearSource(layer)
     }
@@ -440,7 +466,7 @@ export default class Atlas {
    * @returns
    * @memberof Atlas
    */
-  public clearSource(layer: VectorLayer): VectorLayer {
+  public clearSource(layer: VectorLayer<VectorSource<Geometry>>): VectorLayer<VectorSource<Geometry>> {
     if (typeof layer.getSource === "function") {
       layer.getSource().clear()
     }
@@ -455,12 +481,12 @@ export default class Atlas {
    * @returns
    * @memberof Atlas
    */
-  private getLayersByNames(names: string[]): VectorLayer[] {
+  private getLayersByNames(names: string[]): VectorLayer<VectorSource<Geometry>>[] {
     const allLayers = this.map.getLayers()
-    const filteredLayers: VectorLayer[] = []
+    const filteredLayers: VectorLayer<VectorSource<Geometry>>[] = []
     allLayers.forEach((layer) => {
       if (names.includes(layer.get("name"))) {
-        filteredLayers.push(layer as VectorLayer)
+        filteredLayers.push(layer as VectorLayer<VectorSource<Geometry>>)
       }
     })
     return filteredLayers
@@ -475,12 +501,12 @@ export default class Atlas {
    * @returns
    * @memberof Atlas
    */
-  private getOrCreateLayer(name: string, opts: Record<string, any>): [VectorLayer, boolean] {
+  private getOrCreateLayer(name: string, opts: Record<string, any>): [VectorLayer<VectorSource<Geometry>>, boolean] {
     const layers = this.getLayersByNames([name])
-    let layer: VectorLayer, wasCreated: boolean
+    let layer: VectorLayer<VectorSource<Geometry>>, wasCreated: boolean
     switch (layers.length) {
       case 1:
-        layer = (layers[0] as unknown) as VectorLayer
+        layer = (layers[0] as unknown) as VectorLayer<VectorSource<Geometry>>
         wasCreated = false
         break
       case 0:

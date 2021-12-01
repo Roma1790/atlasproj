@@ -4,12 +4,12 @@ import Cluster from "ol/source/Cluster"
 import Feature from "ol/Feature"
 import GeoJSON from "ol/format/GeoJSON"
 import JobStyle from "../styles/jobs"
-import { Point } from "ol/geom"
+import { Geometry, Point } from "ol/geom"
 import VectorLayer from "ol/layer/Vector"
 import VectorSource from "ol/source/Vector"
 import { fromLonLat } from "ol/proj.js"
 import { isSingleLocation } from "./util"
-import { Select } from "ol/interaction"
+
 
 /**
  * The Joblayer is responsible for displaying and animating as clusters.
@@ -20,8 +20,8 @@ import { Select } from "ol/interaction"
  */
 export default class JobLayer {
   private cluster: Cluster
-  public animatedCluster: VectorLayer
-  public areas: VectorLayer
+  public animatedCluster: VectorLayer<VectorSource<Geometry>>
+  public areas: VectorLayer<VectorSource<Geometry>>
   private style: JobStyle
 
 
@@ -43,7 +43,7 @@ export default class JobLayer {
     this.animatedCluster = new AnimatedCluster({
       name: "Jobs",
       source: this.cluster,
-      style: (cluster: Feature) => this.style.clusterStyle(cluster),
+      style: (cluster: Feature<Geometry>) => this.style.clusterStyle(cluster),
     })
     this.areas = new VectorLayer({
       source: new VectorSource(),
@@ -76,9 +76,9 @@ export default class JobLayer {
    * @returns
    * @memberof JobLayer
    */
-  private createFeatures(jobs: Job[]): { areas: Feature[]; points: Feature[] } {
-    const points: Feature[] = []
-    const areas: Feature[] = []
+  private createFeatures(jobs: Job[]): { areas: Feature<Geometry>[]; points: Feature<Geometry>[] } {
+    const points: Feature<Geometry>[] = []
+    const areas: Feature<Geometry>[] = []
     jobs.forEach((job) => {
       job.locations.forEach((location: Location) => {
         if (isSingleLocation(location)) {
@@ -105,7 +105,7 @@ export default class JobLayer {
    * @returns
    * @memberof JobLayer
    */
-  private createSingleLoationFeature(location: SingleLocation): Feature {
+  private createSingleLoationFeature(location: SingleLocation): Feature<Geometry> {
     return new Feature({
       geometry: new Point(fromLonLat([location.lon, location.lat]), ),
     })
@@ -119,7 +119,7 @@ export default class JobLayer {
    * @returns
    * @memberof JobLayer
    */
-  private createAreaFeature(location: Area): Feature {
+  private createAreaFeature(location: Area): Feature<Geometry> {
     const newFeature = new GeoJSON({
       featureProjection: "EPSG:3857",
     }).readFeature({
