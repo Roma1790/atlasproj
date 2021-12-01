@@ -8,6 +8,7 @@ import { arrayContainsContent, isSingleLocation } from "./util"
 import { metrics } from "./tracking"
 
 
+
 /**
  * Displays a list of jobs under the map.
  *
