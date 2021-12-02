@@ -23,14 +23,14 @@ module.exports = {
     splitChunks: {
       chunks: "all",
     },
+    
   },
   devtool: "source-map",
   devServer: {
-    compress: true,
-    overlay: true,
+    http2: true,
     port: 3000,
     open: false,
-    stats: "normal",
+    
   },
   resolve: {
     extensions: [".ts", ".js", ".jsx"],
@@ -50,6 +50,10 @@ module.exports = {
       {
         test: /\.ts$/,
         use: ["babel-loader", "ts-loader"],
+      },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
       },
       { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
     ],

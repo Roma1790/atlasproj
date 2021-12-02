@@ -8,6 +8,7 @@ import { arrayContainsContent, isSingleLocation } from "./util"
 import { metrics } from "./tracking"
 import "core-js/stable/promise";
 import "regenerator-runtime";
+require('./../css/style.css');
 
 
 
