@@ -14,7 +14,6 @@ module.exports = {
   entry: [
     "@babel/polyfill",
     // proxy-polyfill is required because the store is using a proxy object that cnanot be transpiled by babel.
-    "proxy-polyfill",
     "./src/lib/index.ts",
   ],
   output: {
