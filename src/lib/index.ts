@@ -10,9 +10,6 @@ import "core-js/stable/promise";
 import "regenerator-runtime";
 require('./../css/style.css');
 
-
-
-
 /**
  * Displays a list of jobs under the map.
  *
@@ -77,19 +74,20 @@ atlas.subscribe(["STATE_CHANGE_ALLJOBS"], (state: State) => {
   document.getElementById("allJobsCounter")!.innerText = state.allJobs.length.toString()
 })
 atlas.subscribe(["STATE_CHANGE_VISIBLEJOBS"], (state: State) => {
-  let visibleJobs = state.visibleJobs.length.toString()+" Treffer";
-  document.getElementById("visibleJobsCounter")!.innerText = visibleJobs;
+  let visibleJobs = state.visibleJobs.length.toString() + " Treffer"
+  document.getElementById("visibleJobsCounter")!.innerText = visibleJobs
 })
 atlas.subscribe(["STATE_CHANGE_SELECTEDJOBS"], (state: State) => {
   handleClick(atlas, state.selectedJobs)
 })
-
 
 // Get Elements of HTML
 const searchField = document.getElementById("searchField") as HTMLInputElement
 const radVal = document.getElementById("radVal") as HTMLInputElement
 const searchForm = document.getElementById("searchForm")
 const resetbutton = document.getElementById("resetter")
+const branchSelector = document.getElementById("KT_1_button")
+const checkbox = document.getElementById("KT_1_list") as HTMLDivElement
 // grade nicht verwendet const fakultaet = document.getElementById("fakultaet") as HTMLSelectElement
 const category = document.getElementById("kategorie") as HTMLSelectElement
 const branche = document.getElementsByClassName("checkboxes") as HTMLCollectionOf<HTMLInputElement>
@@ -97,56 +95,54 @@ const branche = document.getElementsByClassName("checkboxes") as HTMLCollectionO
 // ResetterButton
 resetbutton!.addEventListener("click", () => {
   globalStore.dispatch("setVisibleJobs", globalStore.getState().allJobs)
-  globalStore.dispatch("setSelectedGeometries",[])
-  // Request for Jobs again... 
+  globalStore.dispatch("setSelectedGeometries", [])
+  // Request for Jobs again...
   new Jobs("https://raw.githubusercontent.com/chronark/atlas/master/static/rawJobs.json").get().then((jobs) => {
     globalStore.dispatch("setJobs", jobs)
   })
   // remove Circle Layer
   const allLayers = atlas.map.getLayers()
   allLayers.forEach((layer) => {
-    if (layer.get("name") =="radiusCircle") {
+    if (layer.get("name") == "radiusCircle") {
       atlas.map.removeLayer(layer)
     }
   })
   // Zoom to Center
-  atlas.zoomTo([0,0], 0)
+  atlas.zoomTo([0, 0], 0)
 })
-// Search Button 
+// Search Button
 if (searchField !== null && searchForm !== null) {
   searchForm.addEventListener("submit", (event) => {
     event.preventDefault()
-    let postreq = false; 
+    let postreq = false
     // todo: set the right id of categorys in html an save that value into variable
     let categoryVal = category.selectedIndex.toString()
     let brancheVal: string[] = new Array()
-    for(var counter= 0; counter <46;counter++){
-      if(branche.item(counter)?.checked){
+    for (var counter = 0; counter < 46; counter++) {
+      if (branche.item(counter)?.checked) {
         brancheVal.push(branche.item(counter)?.getAttribute("value") as string)
       }
     }
     const query = searchField.value
     const radQuery = parseInt(radVal.value)
-  
-    console.log("category is now  :"+categoryVal+" and brancheVal is now  :"+brancheVal)
-    if(categoryVal!== "0"|| arrayContainsContent(brancheVal)){
-      postreq = true;
+
+    console.log("category is now  :" + categoryVal + " and brancheVal is now  :" + brancheVal)
+    if (categoryVal !== "0" || arrayContainsContent(brancheVal)) {
+      postreq = true
     }
-    if(postreq){      
+    if (postreq) {
       // if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
-        console.log("radiussearching... with post")
-        atlas.radiusSearch(query,radQuery,postreq,categoryVal,brancheVal)
-      
+      console.log("radiussearching... with post")
+      atlas.radiusSearch(query, radQuery, postreq, categoryVal, brancheVal)
+
       // else{
       //   atlas.search(query,postreq,categoryVal,brancheVal)
       // }
-
-    }
-    else{
+    } else {
       // if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
-        console.log("radiussearching... no post ")
-        atlas.radiusSearch(query,radQuery,postreq)
-          // else{
+      console.log("radiussearching... no post ")
+      atlas.radiusSearch(query, radQuery, postreq)
+      // else{
       //   atlas.search(query,postreq)
       // }
     }
@@ -168,9 +164,8 @@ sample.jobs(5000).then( (jobs)=>{
 
 new Jobs("https://raw.githubusercontent.com/chronark/atlas/master/static/rawJobs.json").get().then((jobs) => {
   globalStore.dispatch("setJobs", jobs)
-  
 
-   /*new Charon().forwardGeocoding("Bayern").then((geojson: GeocodingResponseObject | undefined) => {
+  /*new Charon().forwardGeocoding("Bayern").then((geojson: GeocodingResponseObject | undefined) => {
     if (geojson) {
       jobs.push({
         corp: "Bayern",
@@ -213,4 +208,77 @@ stopButton?.addEventListener("click", () => {
 })
 //#endregion
 
+const clickedElementList: string[] = []
 
+//visibility trigger of the 
+branchSelector?.addEventListener("click", () => {
+  let div = document.getElementById("KT_1_list")
+  div!.style.display = div!.style.display == "none" ? "block" : "none"
+})
+
+checkbox.childNodes.forEach((child) => {
+  if (child.nodeName === "INPUT") {
+    child.addEventListener("click", () => {
+      let element = child as HTMLInputElement
+      let clickedElement = document.getElementById(element.id + "_label")!.innerText
+      let button = <HTMLInputElement>document.getElementById("KT_1_button")
+      let elementExists = false
+      clickedElementList.forEach((element) => {
+        if (element === clickedElement) {
+          clickedElementList.splice(clickedElementList.indexOf(clickedElement), 1)
+          elementExists = true
+        }
+      })
+      if (!elementExists) {
+        clickedElementList.push(clickedElement)
+      }
+      if (clickedElementList.length === 0) {
+        button!.value = " Branche"
+      } else {
+        let count = 1
+        button!.value = ' '
+        clickedElementList.forEach((element) => {
+          button.value += element
+          if (count < clickedElementList.length) {
+            button.value += ","
+            count++
+          }
+        })
+      }
+    })
+  }
+})
+
+//implementieren wenn mehr Optionen gebraucht werden
+// function more_options() {
+//   let div = document.getElementById("more_options_div")
+//   div!.style.display = div!.style.display == "none" ? "block" : "none"
+// }
+
+
+function setInputFilter(textbox: any, inputFilter: any) {
+  ;["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function (event) {
+    textbox.addEventListener(event, function (this: any) {
+      if (inputFilter(this.value)) {
+        this.oldValue = this.value
+        this.oldSelectionStart = this.selectionStart
+        this.oldSelectionEnd = this.selectionEnd
+      } else if (this.hasOwnProperty("oldValue")) {
+        this.value = this.oldValue
+        this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd)
+      } else {
+        this.value = ""
+      }
+    })
+  })
+}
+window.addEventListener("click",function (this: HTMLDivElement) {
+    let div = document.getElementById("KT_1_list")
+    div!.style.display = "none"
+})
+// do things after the DOM loads fully
+window.addEventListener("load", function () {
+  setInputFilter(document.getElementById("radVal"), function (value: any) {
+    return /^\d*$/.test(value)
+  })
+})
