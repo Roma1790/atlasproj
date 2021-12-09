@@ -2,7 +2,8 @@ import { Action, actions } from "./actions"
 import { Mutation, mutations } from "./mutations"
 import Events from "./events"
 import { Geometry } from "ol/geom"
-import { Job } from "../types/customTypes"
+import { Job, RawLocation } from "../types/customTypes"
+
 
 export type State = {
   allJobs: Job[]
@@ -10,6 +11,9 @@ export type State = {
   selectedJobs: Job[]
   allGeometries: Geometry[]
   selectedGeometries: Geometry[]
+  jobLocationsAll: RawLocation[]
+  jobLocations: RawLocation[]
+  selectedLocation: RawLocation[]
   test?: string
   [key: string]: any
 }
@@ -28,6 +32,9 @@ export const initialState = (): State => {
     selectedJobs: [],
     allGeometries: [],
     selectedGeometries: [],
+    jobLocations: [],
+    jobLocationsAll: [],
+    selectedLocation: [],
   }
 }
 
@@ -56,7 +63,7 @@ export class Store {
     this.mutations = mutations
 
     this.state = new Proxy(state || initialState(), {
-      set: (state: State, key: string, value: Job[] | Geometry[]): boolean => {
+      set: (state: State, key: string, value: Job[] | Geometry[] | RawLocation[]): boolean => {
         state[key] = value
 
         this.events.publish("STATE_CHANGE", state)

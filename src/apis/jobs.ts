@@ -1,4 +1,4 @@
-import { Job, RawSearch } from "../types/customTypes"
+import { Job, RawLocation, RawSearch } from "../types/customTypes"
 
 /**
  * Responsible for loading jobs from an endpoint.
@@ -108,5 +108,9 @@ export class Jobs {
   public async get(kategorie?: number, fakultaet?: number, branche?: number[], postreq?: boolean): Promise<Job[]> {
     const rawJobs = await this.fetchRawJobs(kategorie, fakultaet, branche, postreq)
     return this.transform(rawJobs)
+  }
+  public async getRawLoc(kategorie?: number, fakultaet?: number, branche?: number[], postreq?: boolean): Promise<RawLocation[]> {
+    const rawJobs = await this.fetchRawJobs(kategorie, fakultaet, branche, postreq)
+    return rawJobs.orte
   }
 }

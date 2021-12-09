@@ -3,6 +3,8 @@ import { State, Store } from "./store"
 import { Circle } from "ol/geom"
 import { geometryActions } from "./actions"
 import { geometryMutations } from "./mutations"
+import { selectionStyle } from "../styles/selectionStyle"
+import Cluster from "ol/source/Cluster"
 
 const circles = [
   new Circle([1, 1], 1),
@@ -19,6 +21,9 @@ const initialState = (): State => {
     selectedJobs: [],
     selectedGeometries: [],
     allGeometries: circles.slice(0, 1),
+    jobLocations: [],
+    jobLocationsAll: [],
+    selectedLocation: [],
   }
 }
 

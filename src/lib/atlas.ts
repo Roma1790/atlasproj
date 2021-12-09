@@ -15,17 +15,15 @@ import { Modify, Select } from "ol/interaction"
 import { Extent, boundingExtent} from "ol/extent"
 import { filterJobs } from "./geometryFilter"
 import { fromLonLat, transformExtent } from "ol/proj"
-import { Job, SingleLocation } from "../types/customTypes"
+import { Job, RawLocation } from "../types/customTypes"
 import { Map, Feature, } from "ol"
 import { State, Store, globalStore } from "../state/store"
 import TileLayer from "ol/layer/Tile"
 import OSM from "ol/source/OSM"
 import { metrics } from "./tracking"
-import { Jobs } from "../apis/jobs"
 import { degrees2meters } from "./util"
-import Layer from "ol/layer/Layer"
 import { Geometry } from "ol/geom"
-import { SelectEvent } from "ol/interaction/Select"
+
 
 /**
  * Initial map configuration options.
@@ -68,7 +66,7 @@ export default class Atlas {
   private mapID: string
   public map: Map
   public store: Store
-  private JobLayer: JobLayer
+  public JobLayer: JobLayer
   private zIndices: Record<string, number>
   private selectionLayer: SelectionLayer
 
@@ -96,7 +94,6 @@ export default class Atlas {
     this.addVisibleJobsHook()
     this.addGeometriesHook()
     this.addJobFilterHook()
-    this.addCountries()
     this.addSelect()
     
   }
@@ -160,9 +157,7 @@ export default class Atlas {
       let zoom = view.getZoom();
       let viewcenter = view.getCenter();
       const geometry = features[0].getGeometry()
-      console.log(geo)
-      console.log(geometry)
-      
+    
       // Select searched place to be visible
       
       globalStore.dispatch("setSelectedGeometries",[geometry])
@@ -170,11 +165,17 @@ export default class Atlas {
       if(zoom as number > 4){
         // Timeout to give the map time to update its view with visible jobs
         setTimeout( () => {this.zoomTo(viewcenter as number[], 4)}, 400)
-        setTimeout( () => {this.zoomToExtent((geometry as Geometry).getExtent())}, 3700)
+        setTimeout( () => {
+          this.map.getView().fit((geometry as Geometry).getExtent(), {duration: 1000, maxZoom: 19 })
+        }, 3700)
       }
       else{
-        setTimeout(()=>{this.zoomToExtent((geometry as Geometry).getExtent())}, 400)
-        
+        setTimeout(()=>{
+          this.map.getView().fit((geometry as Geometry).getExtent(), {duration: 1000, maxZoom: 19 })
+        }, 400)
+        //view.animate({zoom: zoom - 8}, {center: view.getCenter()});
+    //setTimeout(()=>{this.map.getView().fit(extent, { duration: 3000 })},200)
+    this.map.getView().fit((geometry as Geometry).getExtent(), {duration: 1000, maxZoom: 19 })
       }
     }
   }
@@ -226,7 +227,9 @@ export default class Atlas {
     //SelectedGeometries to be visible.
     globalStore.dispatch("setSelectedGeometries",[circle])
     //Zoom into Circle
-    setTimeout(()=>{this.zoomToExtent(circle.getExtent())},500) 
+    setTimeout(()=>{
+      this.map.getView().fit(circle.getExtent(), {duration: 1000, maxZoom: 19 })
+    },500) 
     
     
   }
@@ -248,19 +251,6 @@ export default class Atlas {
     })
   }
 
-  /**
-   * Move the viewport to show the entire extent.
-   * This will zoom in or out as necessary.
-   *
-   * @param extent
-   * @memberof Atlas
-   */
-  public zoomToExtent(extent: Extent): void {
-    //view.animate({zoom: zoom - 8}, {center: view.getCenter()});
-    //setTimeout(()=>{this.map.getView().fit(extent, { duration: 3000 })},200)
-    this.map.getView().fit(extent, {duration: 3000, maxZoom: 16 })
-    
-  }
    /**
    * Add the possibilty to select features.
    *
@@ -270,34 +260,18 @@ export default class Atlas {
       const select = new Select({
         layers: [this.JobLayer.animatedCluster]
       })
-  
+      var selectedFeatures = select.getFeatures()
       this.map.addInteraction(select)
-      select.on("select", (e: SelectEvent) => {
-        var selectedFeatures = select.getFeatures()
+      select.on("select", () => {
         selectedFeatures.forEach((f: Feature<Geometry>) => {
           const clickedClusters = f.get("features")
-          const clickedJobs: Job[] = clickedClusters.map((f: Feature<Geometry>) => f.get("job"))
-          globalStore.dispatch("setSelectedJobs", clickedJobs)
+          const clickedLoc: RawLocation[] = clickedClusters.map((f: Feature<Geometry>) => f.get("job"))
+          globalStore.dispatch("setSelectedLocation", clickedLoc)
         })
       })
     }
 
 
-
-  /**
-   * Load initial set of countries and add them to the map without showing them to the user.
-   * geojson out of github being used.
-   */
-  public async addCountries(): Promise<void> {
-    const geojson = await fetch(
-      "https://datahub.io/core/geo-countries/r/countries.geojson",
-    ).then((res) => res.json())
-    const geometries = SelectionLayer.convertGeoJsonToGeometries(geojson)
-     globalStore.dispatch("addGeometries", geometries)
-     this.selectionLayer.setFeaturesFromGeometry(geometries)
-     // Geometrien werden angewählt, muss abgewählt werden...
-     globalStore.dispatch("unselectGeometries", globalStore.getState().selectedGeometries)
-  }
   /**
    * Create a new Polygon layer and add the onClick event listener.
    *
@@ -318,8 +292,8 @@ export default class Atlas {
    * @memberof Atlas
    */
   addVisibleJobsHook(): void {
-    globalStore.events.subscribe(["STATE_CHANGE_VISIBLEJOBS"], (state) => {
-      this.JobLayer.setJobs(state.visibleJobs)
+    globalStore.events.subscribe(["STATE_CHANGE_JOBLOCATIONS", "STATE_CHANGE_VISIBLEJOBS"], (state) => {
+      this.JobLayer.setJobs(state.jobLocations)
       
     })
   }
@@ -344,15 +318,27 @@ export default class Atlas {
   addJobFilterHook(): void {
     globalStore.events.subscribe(["STATE_CHANGE_ALLJOBS", "STATE_CHANGE_SELECTEDGEOMETRIES"], (state) => {
       let newShownJobs: Job[] = []
-
+      let newShownLocation: RawLocation[] = []
+      
       if (globalStore.getState().selectedGeometries.length === 0) {
         newShownJobs = state.allJobs
+        newShownLocation = state.jobLocationsAll
       } else {
         newShownJobs = filterJobs(state.allJobs, {
           geometries: state.selectedGeometries,
         })
+        // Funktioniert zwar ist aber nicht gut ...
+        for(let i = 0; i < state.jobLocationsAll.length; i++){
+          for(let j = 0; j< newShownJobs.length; j++){
+            if(state.jobLocationsAll[i].IDs.includes(newShownJobs[j].id.toString()) && !newShownLocation.includes(state.jobLocationsAll[i])){
+              newShownLocation.push(state.jobLocationsAll[i])
+            } 
+          }
+        }
       }
       globalStore.dispatch("setVisibleJobs", newShownJobs)
+      globalStore.dispatch("setJobLocation", newShownLocation)
+      
     })
   }
 
@@ -622,20 +608,15 @@ export default class Atlas {
     this.map.getView().setZoom(zoom)
   }
 
-  /**
-   * The new view is set to contain all individual job locations. 
-   *
-   * @param locations
-   * @memberof Atlas
-   */
-  public zoomToLocationCluster(locations: SingleLocation[]): void {
-    const coordinates = locations.map((loc) => {
-      return [loc.lon, loc.lat]
-    })
-
+ /**
+  * Build Extent out of coordinates and then zoom into it.
+  * @param coordinates 
+  */
+  public zoomToBuildedExtent(coordinates: number[][]): void {
+    
     const extent = transformExtent(boundingExtent(coordinates), "EPSG:4326", "EPSG:3857")
 
     // this.zoomToExtent(buffer(extent, 100_000 / this.map.getView().getZoom()))
-    this.zoomToExtent(extent)
+    this.map.getView().fit(extent, {duration: 1000, maxZoom: 19 })
   }
 }

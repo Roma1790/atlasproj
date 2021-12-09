@@ -1,5 +1,5 @@
 import { Geometry } from "ol/geom"
-import { Job } from "../types/customTypes"
+import { Job, RawLocation } from "../types/customTypes"
 import { Store } from "./store"
 
 export type Action = (ctx: Store, payload: any) => boolean
@@ -62,6 +62,18 @@ export const jobActions: Record<string, Action> = {
   setJobs(ctx: Store, payload: Job[]): boolean {
     return ctx.commit("setJobs", payload)
   },
+  setJobLocationAll(ctx: Store, payload: RawLocation[]): boolean {
+    return ctx.commit("setJobLocationAll", payload)
+  },
+  /**
+   * 
+   * @param ctx 
+   * @param payload 
+   * @returns 
+   */
+  setJobLocation(ctx: Store, payload: RawLocation[]): boolean{
+    return ctx.commit("setJobLocation", payload)
+  },
   /**
    * Replace jobs in visibleJobs.
    *
@@ -92,6 +104,9 @@ export const jobActions: Record<string, Action> = {
   setSelectedJobs(ctx: Store, payload: Job[]) {
     return ctx.commit("setSelectedJobs", payload)
   },
+  setSelectedLocation(ctx: Store, payload: RawLocation[]){
+    return ctx.commit("setSelectedLocation", payload)
+  }
 }
 
 export const actions: Record<string, Action> = { ...geometryActions, ...jobActions }

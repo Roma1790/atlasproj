@@ -12,7 +12,7 @@ export interface RawJob {
 }
 
 export interface RawLocation {
-  country: string
+  country?: string
   IDs: string
   jobs: number[]
   lat: string

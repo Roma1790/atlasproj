@@ -1,8 +1,8 @@
 import { State, Store, initialState } from "./store"
-
 import { Action } from "./actions"
 import { Mutation } from "./mutations"
 import { stateCallback } from "./events"
+import Cluster from "ol/source/Cluster"
 
 describe("Store()", () => {
   describe("constructor()", () => {
@@ -37,6 +37,9 @@ describe("Store()", () => {
           selectedJobs: [],
           selectedGeometries: [],
           allGeometries: [],
+          jobLocations: [],
+          jobLocationsAll: [],
+          selectedLocation: [],
         }
         const store = new Store({}, {}, customState)
 
