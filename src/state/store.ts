@@ -1,4 +1,4 @@
-import { Action, actions } from "./actions"
+
 import { Mutation, mutations } from "./mutations"
 import Events from "./events"
 import { Geometry } from "ol/geom"
@@ -44,7 +44,6 @@ export const initialState = (): State => {
  * @class Store
  */
 export class Store {
-  private actions: Record<string, Action>
   private mutations: Record<string, Mutation>
   public events: Events
   private state: State
@@ -57,8 +56,7 @@ export class Store {
    * @param [state]
    * @memberof Store
    */
-  constructor(actions: Record<string, Action>, mutations: Record<string, Mutation>, state?: State) {
-    this.actions = actions
+  constructor( mutations: Record<string, Mutation>, state?: State) {
     this.events = new Events()
     this.mutations = mutations
 
@@ -94,12 +92,13 @@ export class Store {
    * @returns Return whether action was performed successful or not.
    * @memberof Store
    */
-  public dispatch(actionName: string, payload: any): boolean {
-    if (typeof this.actions[actionName] !== "function") {
-      console.error(`Action "${actionName}" doesn't exist.`)
+  public dispatch(mutationName: string, payload: any): boolean {
+    if (typeof this.mutations[mutationName] !== "function") {
+      console.error(`Mutation "${mutationName}" doesn't exist`)
       return false
     }
-    return this.actions[actionName](this, payload)
+    
+    return this.mutations[mutationName](this.state, payload)
   }
 
   /**
@@ -112,14 +111,7 @@ export class Store {
    * @returns Return whether mutation was performed successful or not.
    * @memberof Store
    */
-  public commit(mutationName: string, payload: any): boolean {
-    if (typeof this.mutations[mutationName] !== "function") {
-      console.error(`Mutation "${mutationName}" doesn't exist`)
-      return false
-    }
-    
-    return this.mutations[mutationName](this.state, payload)
-  }
+  
 }
 
 /**
@@ -130,7 +122,7 @@ export class Store {
  * @returns
  */
 export function newDefaultStore(): Store {
-  return new Store(actions, mutations, initialState())
+  return new Store(mutations, initialState())
 }
 
 export const globalStore = newDefaultStore()

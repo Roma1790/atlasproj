@@ -1,7 +1,5 @@
 import { State, Store } from "./store"
-
 import { Circle } from "ol/geom"
-import { geometryActions } from "./actions"
 import { geometryMutations } from "./mutations"
 import { selectionStyle } from "../styles/selectionStyle"
 import Cluster from "ol/source/Cluster"
@@ -31,7 +29,7 @@ describe("geometry actions", () => {
   describe("addGeometries()", () => {
     describe("when the state is empty", () => {
       it("should handle a single geometry", () => {
-        const store = new Store(geometryActions, geometryMutations, initialState())
+        const store = new Store( geometryMutations, initialState())
         const geometries = circles.slice(0, 1)
 
         const success = store.dispatch("addGeometries", geometries)
@@ -40,7 +38,7 @@ describe("geometry actions", () => {
       })
 
       it("should handle multiple geometries", () => {
-        const store = new Store(geometryActions, geometryMutations, initialState())
+        const store = new Store(geometryMutations, initialState())
         const geometries = circles
 
         const success = store.dispatch("addGeometries", geometries)
@@ -55,7 +53,7 @@ describe("geometry actions", () => {
           allGeometries: circles.slice(0, 4),
         })
 
-        const store = new Store(geometryActions, geometryMutations, customState)
+        const store = new Store( geometryMutations, customState)
         const geometries = circles.slice(4, 5)
         const want = circles.slice(0, 5)
 
@@ -69,7 +67,7 @@ describe("geometry actions", () => {
           allGeometries: circles.slice(0, 4),
         })
 
-        const store = new Store(geometryActions, geometryMutations, customState)
+        const store = new Store(geometryMutations, customState)
 
         const geometries = circles.slice(4, 6)
         const want = circles.slice(0, 6)
@@ -83,7 +81,7 @@ describe("geometry actions", () => {
   describe("selectGeometries()", () => {
     describe("when the state is empty", () => {
       it("should handle single geometries", () => {
-        const store = new Store(geometryActions, geometryMutations, initialState())
+        const store = new Store(geometryMutations, initialState())
 
         const geometries = circles.slice(0, 1)
 
@@ -93,7 +91,7 @@ describe("geometry actions", () => {
       })
 
       it("should handle multiple geometries", () => {
-        const store = new Store(geometryActions, geometryMutations, initialState())
+        const store = new Store( geometryMutations, initialState())
 
         const geometries = circles
 
@@ -108,7 +106,7 @@ describe("geometry actions", () => {
         const customState = Object.assign(initialState(), {
           selectedGeometries: circles.slice(0, 4),
         })
-        const store = new Store(geometryActions, geometryMutations, customState)
+        const store = new Store( geometryMutations, customState)
 
         const geometries = circles.slice(4, 5)
         const want = circles.slice(0, 5)
@@ -126,7 +124,7 @@ describe("geometry actions", () => {
           selectedGeometries: circles.slice(0, 3),
         })
 
-        const store = new Store(geometryActions, geometryMutations, customState)
+        const store = new Store(geometryMutations, customState)
         const geometries = circles.slice(3, 5)
         const want = circles.slice(0, 5)
         const success = store.dispatch("selectGeometries", geometries)
