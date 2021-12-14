@@ -46,8 +46,6 @@ const showJobs = (jobs: Job[]): void => {
  * @param jobs
  */
 const handleClick = (atlas: Atlas, jobs: Job[], loc: RawLocation[]): void => {
-  // Setselectedcluster? dafür dann kann man cluster selecten und diesen überprüfen, ob er größer ist als 1. 
-  // filter jobs aus der Raw Location und zeige sie . let jobs = loc.filterjobs
   let visibleJobs = globalStore.getState().visibleJobs
   if (process.env.TEST_DISPLAY_ALWAYS === "true") {
     showJobs(jobs)
@@ -55,6 +53,7 @@ const handleClick = (atlas: Atlas, jobs: Job[], loc: RawLocation[]): void => {
   else {
     if (loc.length > 1) {
       // Zoom into Locations
+      /*A Variante
       let coordinates: number[][] = []
       let lat, lon : number
       for(let j = 0; j < loc.length; j++){
@@ -62,7 +61,17 @@ const handleClick = (atlas: Atlas, jobs: Job[], loc: RawLocation[]): void => {
         lat = parseFloat(loc[j].lat)
         coordinates.push([lon,lat])
       }
-      atlas.zoomToBuildedExtent(coordinates)
+      atlas.zoomToBuildedExtent(coordinates) */ 
+      
+      let jobs: Job[] = []
+      for(let i = 0; i < loc.length ; i++){
+        for(let j = 0; j < visibleJobs.length; j++){
+          if(loc[i].IDs.indexOf(visibleJobs[j].id.toString()) != -1 ){
+            jobs.push(visibleJobs[j])
+          }
+        }
+      }
+      showJobs(jobs)
     }
    else {
       // Show jobs of that location
@@ -97,7 +106,6 @@ atlas.subscribe(["STATE_CHANGE_SELECTEDLOCATION"], (state: State) => {
 const searchField = document.getElementById("searchField") as HTMLInputElement
 const radVal = document.getElementById("radVal") as HTMLInputElement
 const searchForm = document.getElementById("searchForm")
-const resetbutton = document.getElementById("resetter")
 const branchSelector = document.getElementById("KT_1_button")
 const checkbox = document.getElementById("KT_1_list") as HTMLDivElement
 // grade nicht verwendet const fakultaet = document.getElementById("fakultaet") as HTMLSelectElement

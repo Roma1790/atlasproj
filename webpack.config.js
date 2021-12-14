@@ -52,6 +52,17 @@ module.exports = {
         use: ["babel-loader", "ts-loader"],
       },
       {
+        test: /\.(png|svg|jpg|jpeg|gif|tiff)$/,
+        loader: 'file-loader',
+        options: {
+            name: '/assets/[name].[ext]',
+            outputPath: 'images',
+            publicPath: 'images',
+            emitFile: true, 
+            esModule: false,
+        },
+      },
+      {
         test: /\.css$/i,
         use: ["style-loader", "css-loader"],
       },

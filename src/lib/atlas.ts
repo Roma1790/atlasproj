@@ -23,6 +23,9 @@ import OSM from "ol/source/OSM"
 import { metrics } from "./tracking"
 import { degrees2meters } from "./util"
 import { Geometry } from "ol/geom"
+import { Fill, Icon, Stroke, Style } from "ol/style"
+import CircleStyle from "ol/style/Circle"
+import { scale } from "ol/coordinate"
 
 
 /**
@@ -258,7 +261,26 @@ export default class Atlas {
    */
     private addSelect(): void {
       const select = new Select({
-        layers: [this.JobLayer.animatedCluster]
+        layers: [this.JobLayer.animatedCluster],
+        style: new Style({
+          image: new Icon({
+            anchor: [0.5, 1],
+            src: require('./../css/R.png'),
+            scale: 0.05
+          })
+        })/*new Style({
+          image: new CircleStyle({
+            radius: 10,
+            stroke: new Stroke({
+              color: "rgba(206,161,14,0.8)",
+              width: 10,
+              
+            }),
+            fill: new Fill({
+              color: "rgba(222,27,196,0.8)",
+            }),
+          }),
+        }) */
       })
       var selectedFeatures = select.getFeatures()
       this.map.addInteraction(select)
