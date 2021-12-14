@@ -1,4 +1,3 @@
-
 *{
     margin: 0;
     padding: 0;
@@ -8,8 +7,7 @@
     display: flex;
     justify-content: center;
     flex-direction: column;
-    height: 800px;
-    background-color: lightblue;
+    height: 700.5px;
 }
 
 #upperSection {
@@ -17,23 +15,18 @@
 
     display: flex;
     justify-content: space-between;
-    
-    height: 300px;
+    max-height: 120px;
 }
 #searchFormBlock {
     /* border: 2px solid black; */
 
     margin-right: 2%;
     width: 800px;
-    height: auto;
-    
 }
 #jobs {
-    /* border: 2px solid black; */
-
+    border: 1px solid #e1e1e1;
     width:49%;
-    height: auto;
-    overflow: auto;
+    overflow-y: scroll;
 }
 #searchForm{
     display:flex;
@@ -45,29 +38,48 @@ select{
     padding-left: 2px;
     padding-right: 2px;
 }
+
 .inputField {
-    width: 350px;
-    height: 40px;
+    width:  250px;
+    height: 26px;
     margin: 5px;
     margin-bottom: 0;
-    border-radius: 5px;
-    box-shadow: 1px 1px 5px rgba(0,0,0,0.5),
-            inset 1px 1px 5px rgba(0,0,0,0.5);
     box-sizing: content-box;
-    display: block;
     padding-left: 2px;
     padding-right: 2px;
-    background-color: white;
     text-align: left;
+    border-style: solid;
+    border: 1px solid #e1e1e1;
+    border-radius: 0;
+    background-color: white;
 }
 .radChange{
-    width: 24px;
+    width: 28px;
+    border-style: solid;
+    border: 1px solid #e1e1e1;
+    border-radius: 0;
+    background-color: white;
 }
-#radText{
-    min-height: 45.2px;
-    margin: 5px;
-    display: flex;
+.radText{
     align-items: center;
+    padding-left: 5px;
+    padding-right: 2px;
+    padding-top: 5px;
+}
+select.inputField option {
+    border-radius: 0px;
+}
+
+.upperSectionButton{
+    height: 27.5px;
+    padding-top: 0;
+    font-size: 14px;
+    background-color: white;
+    border-radius: 0px;
+    border-style: solid black;
+    margin-left: 5px;
+    margin-right: 2px;
+    margin-top: 7px;
 }
 
 
@@ -76,12 +88,6 @@ select{
     display: flex;
     justify-content: center;
     width: 100%;
-}
-.upperSectionButton{
-    width: 100%;
-    height: auto;
-    margin: 5px;
-    font-size: 14px;
 }
 #searchSubmit{
     width:49%;
@@ -100,7 +106,7 @@ select{
 } */
 #map-container {
     border: 2px solid grey;
-    height: 4000px;
+    height: 2000px;
     overflow: hidden;
     margin: 1px;
     background-color: #ffffff;
@@ -110,29 +116,26 @@ select{
     background-color: rgba(255, 255, 255, 1);
     color: black;
     font-size: 1em;
-    width: 357px;
+    width: 300  px;
     z-index: 2;
-    box-shadow:  1px 1px 3px #4f4f4f,
-             0px 0px 0px #ffffff;
-    border-radius: 4px;
     border: 1px solid lightgrey;
     height: 60%;
     overflow-x: hidden;
     overflow-y: scroll;
     position: absolute;
     margin:0;
-    margin-left: 5px;
     padding: 0;
-    white-space:nowrap;  
+    padding-left: 5px;
+    white-space:nowrap; 
 }
 
 .checkbox_auswahl input {
     margin-top:0;
-    margin-bottom:8px;
     padding-top:3px;
 }
 .checkbox_auswahl label {
-    padding-top:3px;
+    padding-top:4px;
+    padding-bottom:4px;
     width:100%;
     display:inline-block;
     line-height:normal;
@@ -148,4 +151,7 @@ select{
 .checkboxes{
     width: 15px!important;
     height: 15px!important;
+}
+.allJobs{
+    padding-left: 7px;
 }

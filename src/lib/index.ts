@@ -104,24 +104,7 @@ const checkbox = document.getElementById("KT_1_list") as HTMLDivElement
 const category = document.getElementById("kategorie") as HTMLSelectElement
 const branche = document.getElementsByClassName("checkboxes") as HTMLCollectionOf<HTMLInputElement>
 
-// ResetterButton
-resetbutton!.addEventListener("click", () => {
-  globalStore.dispatch("setVisibleJobs", globalStore.getState().allJobs)
-  globalStore.dispatch("setSelectedGeometries", [])
-  // Request for Jobs again...
-  new Jobs("https://raw.githubusercontent.com/chronark/atlas/master/static/rawJobs.json").get().then((jobs) => {
-    globalStore.dispatch("setJobs", jobs)
-  })
-  // remove Circle Layer
-  const allLayers = atlas.map.getLayers()
-  allLayers.forEach((layer) => {
-    if (layer.get("name") == "radiusCircle") {
-      atlas.map.removeLayer(layer)
-    }
-  })
-  // Zoom to Center
-  atlas.zoomTo([0, 0], 0)
-})
+
 // Search Button
 if (searchField !== null && searchForm !== null) {
   searchForm.addEventListener("submit", (event) => {
