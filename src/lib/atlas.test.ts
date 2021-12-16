@@ -18,15 +18,7 @@ describe("map.zoomTo", () => {
       zoom: tc[2],
     }
   })
-  it("should set the correct view", () => {
-    testCases.forEach((tc) => {
-      atlas.setView(tc.lon, tc.lat, tc.zoom)
-      const view = atlas.map.getView()
-      expect(view.getZoom()).toBe(tc.zoom)
-      expect((view.getCenter() as number[])[0] ).toBe(tc.lat)
-      expect((view.getCenter()as number[])[1] ).toBe(tc.lon)
-    })
-  })
+  
 })
 
 describe("creating a View from user options", () => {

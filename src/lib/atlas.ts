@@ -1,18 +1,13 @@
 import Bar from "ol-ext/control/Bar"
 import BaseLayer from "ol/layer/Base"
-import Button from "ol-ext/control/Button"
 import Charon from "../apis/charon"
 import FullScreen from "ol/control/FullScreen"
 import JobLayer from "./jobLayer"
-import polygonStyle from "../styles/polygon"
 import SelectionLayer from "./selectionLayer"
-import VectorLayer from "ol/layer/Vector"
-import VectorSource from "ol/source/Vector"
 import View from "ol/View"
-import Circle from "ol/geom/Circle"
 import { Attribution, OverviewMap, Zoom } from "ol/control"
-import { Modify, Select } from "ol/interaction"
-import { Extent, boundingExtent, getCenter} from "ol/extent"
+import { Select } from "ol/interaction"
+import { Extent, boundingExtent} from "ol/extent"
 import { filterJobs } from "./geometryFilter"
 import { fromLonLat, transformExtent } from "ol/proj"
 import { Job, RawLocation } from "../types/customTypes"
@@ -21,12 +16,11 @@ import { State, Store, globalStore } from "../state/store"
 import TileLayer from "ol/layer/Tile"
 import OSM from "ol/source/OSM"
 import { metrics } from "./tracking"
-import { degrees2meters, meters2degrees, unique } from "./util"
-import { Geometry, Point } from "ol/geom"
-import { Fill, Icon, Stroke, Style } from "ol/style"
+import { degrees2meters } from "./util"
+import { Geometry } from "ol/geom"
+import { Style } from "ol/style"
 import CircleStyle from "ol/style/Circle"
-import { scale } from "ol/coordinate"
-import { globalAgent } from "http"
+import CircleLayer from "./circleLayer"
 
 
 /**
@@ -71,6 +65,7 @@ export default class Atlas {
   public map: Map
   public store: Store
   public JobLayer: JobLayer
+  public circleLayer: CircleLayer
   private zIndices: Record<string, number>
   private selectionLayer: SelectionLayer
 
@@ -87,19 +82,19 @@ export default class Atlas {
       tiles: 0,
       countries: 10,
       circleSelect: 10,
-      jobs: 1000,
+      jobs: 500,
     }
 
     this.map = this.build(opts || {})
-    this.selectionLayer = this.createSelectionLayer()
+    this.selectionLayer = new SelectionLayer()
     this.map.addLayer(this.selectionLayer)
+    this.addCircleLayer()
     this.addControls()
     this.buildJobLayer()
     this.addVisibleJobsHook()
     this.addGeometriesHook()
     this.addJobFilterHook()
     this.addSelect()
-    
   }
 
   /**
@@ -149,7 +144,6 @@ export default class Atlas {
       }
       })*/
       const geojson = await new Charon().forwardGeocoding(query)
-      
       if (geojson === undefined) {
         console.error("Could not find " + query)
         return
@@ -161,9 +155,7 @@ export default class Atlas {
       let zoom = view.getZoom();
       let viewcenter = view.getCenter();
       const geometry = features[0].getGeometry()
-    
       // Select searched place to be visible
-      
       globalStore.dispatch("setSelectedGeometries",[geometry])
       // Zoom out when your zoomed in
       if(zoom as number > 4){
@@ -203,39 +195,15 @@ export default class Atlas {
     // Coordinate = [x in meter, y in meter] = "EPSG:3857"
     let latlon = geojson.features[0].geometry.coordinates
     let coordinate = degrees2meters(latlon[0],latlon[1])
-    // Circle Creation
-    var circleLayer = this.getCircleLayer("radiusCircle", true)
-    this.addLayer(circleLayer)
-    var circle = new Circle(coordinate,radius*1000)
-    var features = new Feature(circle)
-    circleLayer.getSource().addFeature(features)  
-    //Modify Add
-    var modify = new Modify({
-      source: circleLayer.getSource()
-    })
-    this.map.addInteraction(modify)
-
-    //modify end Function
-    modify.on("modifyend", () => {
-    if(circle.getRadius() < 10*1000){
-      circle.setRadius(10*1000)
-      alert("Mindestradius beträgt 10km")
-    }
-    let rad = Math.floor(circle.getRadius() / 1000)
-    circle.setRadius(rad*1000)
-    
-    
-    globalStore.dispatch("setSelectedGeometries",[circle])
-    document.getElementById("radVal")!.setAttribute("value",rad.toString())
-    })
-    //SelectedGeometries to be visible.
+    //Create a new Circle in the circlelayer.
+    let circle = this.circleLayer.getCircle()
+    this.circleLayer.setCircle(coordinate, radius*1000)
+    //Set circle to be visible.
     globalStore.dispatch("setSelectedGeometries",[circle])
     //Zoom into Circle
     setTimeout(()=>{
       this.map.getView().fit(circle.getExtent(), {duration: 1000, maxZoom: 19 })
     },500) 
-    
-    
   }
 
   /**
@@ -254,7 +222,6 @@ export default class Atlas {
       duration: 3500
     })
   }
-
    /**
    * Add the possibilty to select features.
    *
@@ -307,21 +274,6 @@ export default class Atlas {
         })
       })
     }
-
-  /**
-   * Create a new Polygon layer and add the onClick event listener.
-   *
-   * Will be called once in the constructor.
-   *
-   * @private
-   * @returns A new polygon layer for countries or other areas the user selected.
-   * @memberof Atlas
-   */
-  private createSelectionLayer(): SelectionLayer {
-    const selectionLayer = new SelectionLayer()
-    return selectionLayer
-  }
-
   /**
    * Subscribes to the store to update the jobs on the map.
    *
@@ -411,135 +363,19 @@ export default class Atlas {
   private addControls(): any {
     const mainbar = new Bar()
     mainbar.setPosition("left-top")
-
     this.map.addControl(new FullScreen())
     this.map.addControl(mainbar)
-    mainbar.addControl(this.circleSelectRemoveButton())
+    mainbar.addControl(this.circleLayer.circleSelectRemoveButton())
 
     return mainbar
   }
-
   /**
-   * Create a button to remove the circle selection.
-   * TODO: Move this outside of the class.
-   *
-   * @private
-   * @returns
-   * @memberof Atlas
+   * Creates the CircleLayer, mainly used in radius searching
    */
-  private circleSelectRemoveButton(): void {
-    return new Button({
-      html: "R",
-      className: "",
-      title: "Remove Circle Selection",
-      handleClick: () => {
-        this.clearSource(this.getDrawLayer("drawLayer"))
-        this.clearSource(this.getDrawLayer("radiusCircle"))
-      },
-    })
-  }
-  /**
-   * Get or create a new layer to draw on.
-   *
-   * @private
-   * @param clear
-   * @returns
-   * @memberof Atlas
-   */
-  private getDrawLayer(name: string,clear?: boolean): VectorLayer<VectorSource<Geometry>> {
-    let [layer, wasCreated] = this.getOrCreateLayer(name, {
-      source: new VectorSource(),
-      // Sets the style after transformation
-      style: polygonStyle(),
-    })
-    layer = layer as VectorLayer<VectorSource<Geometry>>
-    if (!wasCreated && clear) {
-      this.clearSource(layer)
-    }
-    layer.setZIndex(this.zIndices.circleSelect)
-    return layer
-  }
-  /**
-   * Create a new Layer with given name or return already existing layer with given name.
-   * The Vector Source is being cleared on already existing Layer.
-   * @param name Name of the Layer you want to add.
-   * @param clear false = create new Layer, true = clear Source of existing Layer
-   * @returns the layer with given name.
-   */
-  private getCircleLayer(name:string,clear?:boolean): VectorLayer<VectorSource<Geometry>> {
-    let [layer, wasCreated] = this.getOrCreateLayer(name, {
-      source: new VectorSource(),
-      // Sets the style after transformation
-      style: polygonStyle(),
-    })
-    layer = layer as VectorLayer<VectorSource<Geometry>>
-    if (!wasCreated && clear) {
-      this.clearSource(layer)
-    }
-    
-    return layer
-  }
-
-  /**
-   * Helper function to clear the source of a layer.
-   *
-   * @public
-   * @param  layer
-   * @returns
-   * @memberof Atlas
-   */
-  public clearSource(layer: VectorLayer<VectorSource<Geometry>>): VectorLayer<VectorSource<Geometry>> {
-    if (typeof layer.getSource === "function") {
-      layer.getSource().clear()
-    }
-    return layer
-  }
-
-  /**
-   * Filter all layers by name.
-   *
-   * @private
-   * @param  names
-   * @returns
-   * @memberof Atlas
-   */
-  private getLayersByNames(names: string[]): VectorLayer<VectorSource<Geometry>>[] {
-    const allLayers = this.map.getLayers()
-    const filteredLayers: VectorLayer<VectorSource<Geometry>>[] = []
-    allLayers.forEach((layer) => {
-      if (names.includes(layer.get("name"))) {
-        filteredLayers.push(layer as VectorLayer<VectorSource<Geometry>>)
-      }
-    })
-    return filteredLayers
-  }
-  
-  /**
-   * Try to get a layer by name or create a new one if it doesn't exist.
-   *
-   * @private
-   * @param name
-   * @param  opts
-   * @returns
-   * @memberof Atlas
-   */
-  private getOrCreateLayer(name: string, opts: Record<string, any>): [VectorLayer<VectorSource<Geometry>>, boolean] {
-    const layers = this.getLayersByNames([name])
-    let layer: VectorLayer<VectorSource<Geometry>>, wasCreated: boolean
-    switch (layers.length) {
-      case 1:
-        layer = (layers[0] as unknown) as VectorLayer<VectorSource<Geometry>>
-        wasCreated = false
-        break
-      case 0:
-        layer = new VectorLayer(opts)
-        layer.set("name", name)
-        wasCreated = true
-        break
-      default:
-        throw Error(`I found more than one layer with this name: ${name}`)
-    }
-    return [layer, wasCreated]
+  private addCircleLayer(){
+    this.circleLayer = new CircleLayer()
+    this.map.addLayer(this.circleLayer.getcircleLayer())
+    this.circleLayer.circleAddModify(this)
   }
 
   /**
@@ -568,7 +404,7 @@ export default class Atlas {
     } else {
       return new View({
         center: fromLonLat([0, 45]),
-        zoom: 2,
+        zoom: 0,
       })
     }
   }
@@ -627,21 +463,7 @@ export default class Atlas {
     this.JobLayer = new JobLayer(60)
     this.JobLayer.animatedCluster.setZIndex(this.zIndices.jobs)
     this.addLayer(this.JobLayer.animatedCluster, { name: "cluster" })
-    this.addLayer(this.JobLayer.areas, { name: "areas" })
     this.addLayer(this.JobLayer.marker, {name: "selectedMarker"})
-  }
-
-  /**
-   * Instantly set the map viewport to center on lat/lon and zoom level.
-   *
-   * @param  lon
-   * @param  lat
-   * @param  zoom
-   * @memberof Atlas
-   */
-  public setView(lon: number, lat: number, zoom: number): void {
-    this.map.getView().setCenter([lat, lon])
-    this.map.getView().setZoom(zoom)
   }
 
  /**

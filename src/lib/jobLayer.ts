@@ -103,6 +103,7 @@ export default class JobLayer {
     point.setCoordinates(coordinates)
     
   }
+  
 
   /**
    * Construct a feature from a RawLocation.
