@@ -8,6 +8,8 @@ import { arrayContainsContent} from "./util"
 import { metrics } from "./tracking"
 import "core-js/stable/promise";
 import "regenerator-runtime";
+import { boundingExtent, getCenter } from "ol/extent"
+import { transformExtent } from "ol/proj"
 require('./../css/style.css');
 
 /**
@@ -51,18 +53,17 @@ const handleClick = (atlas: Atlas, jobs: Job[], loc: RawLocation[]): void => {
     showJobs(jobs)
   } 
   else {
-    if (loc.length > 1) {
-      // Zoom into Locations
-      /*A Variante
-      let coordinates: number[][] = []
+    let coordinates: number[][] = []
       let lat, lon : number
       for(let j = 0; j < loc.length; j++){
         lon = parseFloat(loc[j].lng)
         lat = parseFloat(loc[j].lat)
         coordinates.push([lon,lat])
       }
-      atlas.zoomToBuildedExtent(coordinates) */ 
-      
+    if (loc.length > 1) {
+      // Zoom into Locations A Variante
+      atlas.JobLayer.modifySelectorPoint(boundingExtent(coordinates))
+      // atlas.zoomToBuildedExtent(coordinates)
       let jobs: Job[] = []
       for(let i = 0; i < loc.length ; i++){
         for(let j = 0; j < visibleJobs.length; j++){
@@ -75,6 +76,7 @@ const handleClick = (atlas: Atlas, jobs: Job[], loc: RawLocation[]): void => {
     }
    else {
       // Show jobs of that location
+      atlas.JobLayer.modifySelectorPoint(boundingExtent(coordinates))
       let jobids = loc[0].IDs
       let jobs: Job[] = []
       for(let i = 0; i < visibleJobs.length; i++){

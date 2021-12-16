@@ -86,6 +86,17 @@ export const jobMutations = {
     return true
   },
   /**
+   * 
+   * @param state The current state.
+   * @param payload Location to be added to JobLocations
+   * @returns 
+   */
+  addJobLocation(state: State, payload: RawLocation[]): boolean{
+    const combined = state.jobLocations.concat(payload)
+    state.jobLocations = unique(combined)
+    return true
+  },
+  /**
    * Replace visibleJobs with new jobs.
    *
    * @param state - The current state.

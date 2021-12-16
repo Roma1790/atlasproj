@@ -12,7 +12,7 @@ import View from "ol/View"
 import Circle from "ol/geom/Circle"
 import { Attribution, OverviewMap, Zoom } from "ol/control"
 import { Modify, Select } from "ol/interaction"
-import { Extent, boundingExtent} from "ol/extent"
+import { Extent, boundingExtent, getCenter} from "ol/extent"
 import { filterJobs } from "./geometryFilter"
 import { fromLonLat, transformExtent } from "ol/proj"
 import { Job, RawLocation } from "../types/customTypes"
@@ -21,11 +21,12 @@ import { State, Store, globalStore } from "../state/store"
 import TileLayer from "ol/layer/Tile"
 import OSM from "ol/source/OSM"
 import { metrics } from "./tracking"
-import { degrees2meters } from "./util"
-import { Geometry } from "ol/geom"
+import { degrees2meters, meters2degrees, unique } from "./util"
+import { Geometry, Point } from "ol/geom"
 import { Fill, Icon, Stroke, Style } from "ol/style"
 import CircleStyle from "ol/style/Circle"
 import { scale } from "ol/coordinate"
+import { globalAgent } from "http"
 
 
 /**
@@ -263,36 +264,49 @@ export default class Atlas {
       const select = new Select({
         layers: [this.JobLayer.animatedCluster],
         style: new Style({
-          image: new Icon({
-            anchor: [0.5, 1],
-            src: require('./../css/R.png'),
-            scale: 0.05
-          })
-        })/*new Style({
           image: new CircleStyle({
-            radius: 10,
-            stroke: new Stroke({
-              color: "rgba(206,161,14,0.8)",
-              width: 10,
-              
-            }),
-            fill: new Fill({
-              color: "rgba(222,27,196,0.8)",
-            }),
+            radius: 0,
           }),
-        }) */
+        }) 
       })
-      var selectedFeatures = select.getFeatures()
       this.map.addInteraction(select)
-      select.on("select", () => {
+      let selectedLoc: RawLocation[]
+      select.on("select", (e) => {
+        var selectedFeatures = select.getFeatures()
         selectedFeatures.forEach((f: Feature<Geometry>) => {
           const clickedClusters = f.get("features")
           const clickedLoc: RawLocation[] = clickedClusters.map((f: Feature<Geometry>) => f.get("job"))
+          // Add filtered Location again to JobLocations
+          if(selectedLoc){
+            globalStore.dispatch("addJobLocation", selectedLoc)
+            selectedLoc = []
+          }
+          // Sort JobLocation and Cluster in ascending Order and than create a filteredLocation[] 
+          // after that sequence the filterLoc does not contain contents of clickedLoc, a marker 
+          // is being placed on that position- currently linear search--  maybe binary? 
+          let filterloc: RawLocation[] = []
+          let j = 0;   
+          clickedLoc.sort((first, second) => 0 - (first.IDs > second.IDs ? -1 : 1));
+          globalStore.getState().jobLocations.sort((first, second) => 0 - (first.IDs > second.IDs ? -1 : 1));
+          for(let i = 0; i < globalStore.getState().jobLocations.length ; i++){
+            if(j == clickedLoc.length){
+              filterloc.push(globalStore.getState().jobLocations[i])
+            }
+            else if(globalStore.getState().jobLocations[i].IDs != clickedLoc[j].IDs){
+              filterloc.push(globalStore.getState().jobLocations[i])
+            }
+            else{
+              j++
+            }
+          }
+          // SetJobLocation for display on map and selectLoc for display in table
+          globalStore.dispatch("setJobLocation", filterloc)
           globalStore.dispatch("setSelectedLocation", clickedLoc)
+          selectedLoc = clickedLoc
+          
         })
       })
     }
-
 
   /**
    * Create a new Polygon layer and add the onClick event listener.
@@ -614,7 +628,7 @@ export default class Atlas {
     this.JobLayer.animatedCluster.setZIndex(this.zIndices.jobs)
     this.addLayer(this.JobLayer.animatedCluster, { name: "cluster" })
     this.addLayer(this.JobLayer.areas, { name: "areas" })
-    
+    this.addLayer(this.JobLayer.marker, {name: "selectedMarker"})
   }
 
   /**
@@ -631,13 +645,12 @@ export default class Atlas {
   }
 
  /**
-  * Build Extent out of coordinates and then zoom into it.
+  * Build Extent out of coordinates and then zoom into it. Extent is a Square 
   * @param coordinates 
   */
   public zoomToBuildedExtent(coordinates: number[][]): void {
-    
-    const extent = transformExtent(boundingExtent(coordinates), "EPSG:4326", "EPSG:3857")
 
+    const extent = transformExtent(boundingExtent(coordinates), "EPSG:4326", "EPSG:3857")
     // this.zoomToExtent(buffer(extent, 100_000 / this.map.getView().getZoom()))
     this.map.getView().fit(extent, {duration: 1000, maxZoom: 19 })
   }

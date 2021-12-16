@@ -7,11 +7,13 @@ import JobStyle from "../styles/jobs"
 import { Geometry, Point } from "ol/geom"
 import VectorLayer from "ol/layer/Vector"
 import VectorSource from "ol/source/Vector"
-import { fromLonLat } from "ol/proj.js"
+import { fromLonLat, Projection, transformExtent } from "ol/proj.js"
 import { isSingleLocation } from "./util"
-import { Coordinate } from "ol/coordinate"
+import { Coordinate, scale } from "ol/coordinate"
 import { Console } from "console"
 import { text } from "stream/consumers"
+import { Icon, Style } from "ol/style"
+import { boundingExtent, getCenter } from "ol/extent"
 
 
 /**
@@ -25,6 +27,7 @@ export default class JobLayer {
   private cluster: Cluster
   public animatedCluster: VectorLayer<VectorSource<Geometry>>
   public areas: VectorLayer<VectorSource<Geometry>>
+  public marker: VectorLayer<VectorSource<Geometry>>
   private style: JobStyle
 
 
@@ -51,6 +54,20 @@ export default class JobLayer {
     this.areas = new VectorLayer({
       source: new VectorSource(),
     })
+    this.marker = new VectorLayer({
+      source: new VectorSource({
+        features: [ new Feature({
+          geometry: new Point([])
+        })]
+      }),
+      style: new Style({
+        image: new Icon({
+          anchor: [0.5, 0.9],
+          src: require("./../css/R.png"),
+          scale: 0.05,
+        })
+      })
+    })
   }
 
   /**
@@ -72,6 +89,19 @@ export default class JobLayer {
     this.cluster.getSource().addFeatures(points)
     
 
+  }
+  /**
+   * Change the position of the Selection Marker
+   * @param coordinates Destination Coordinate as [ epsg3857 ]
+   */
+  public modifySelectorPoint(coordinates: number[]){
+    if(coordinates.length > 2){
+      coordinates = getCenter(transformExtent(coordinates, "EPSG:4326", "EPSG:3857"))
+    }
+    var marker = this.marker.getSource().getFeatures()
+    var point = marker[0].getGeometry() as Point
+    point.setCoordinates(coordinates)
+    
   }
 
   /**
