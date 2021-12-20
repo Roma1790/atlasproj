@@ -6,6 +6,8 @@ import VectorSource from "ol/source/Vector";
 import { globalStore } from "../state/store";
 import Button from "ol-ext/control/Button"
 import Atlas from "./atlas";
+import { Job } from "../types/customTypes";
+import JobLayer from "./jobLayer";
 
 export default class CircleLayer {
     private circlelayer: VectorLayer<VectorSource<Geometry>>
@@ -92,15 +94,39 @@ export default class CircleLayer {
    * @returns
    * @memberof Atlas
    */
-  public circleSelectRemoveButton(): void {
+  public circleSelectRemoveButton(atlas: Atlas): void {
+    const showJobs = (jobs: Job[]): void => {
+      const ul = document.getElementById("jobs") as HTMLUListElement
+      ul.innerHTML = ""
+      jobs.forEach((job) => {
+        const div = document.createElement("div")
+        const title = document.createElement("p")
+        const link = document.createElement("a")
+        const image = document.createElement("img")
+        image.src = job.logo
+        link.href = job.url
+        link.innerText = "website"
+        title.innerHTML = job.title
+    
+        div.append(image)
+        div.appendChild(link)
+        div.appendChild(title)
+        div.setAttribute("style", "margin: 1em; padding: 1em; background: white; border-radius: 5px; overflow: hidden;")
+    
+        ul.appendChild(div)
+      })
+    }
     return new Button({
       html: "R",
       className: "",
       title: "Remove Circle Selection",
       handleClick: () => {
         this.circlelayer.getSource().clear()
+        atlas.JobLayer.marker.getSource().clear()
         globalStore.dispatch("setSelectedGeometries", [])
-        
+        globalStore.dispatch("setJobLocation", globalStore.getState().jobLocationsAll)
+        showJobs(globalStore.getState().allJobs)
+        atlas.zoomTo([0,0],1)
       },
     })
   }

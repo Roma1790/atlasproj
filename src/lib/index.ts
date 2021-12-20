@@ -8,86 +8,8 @@ import { arrayContainsContent} from "./util"
 import { metrics } from "./tracking"
 import "core-js/stable/promise";
 import "regenerator-runtime";
-import { boundingExtent, getCenter } from "ol/extent"
-import { transformExtent } from "ol/proj"
+import { boundingExtent} from "ol/extent"
 require('./../css/style.css');
-
-/**
- * Displays a list of jobs under the map.
- *
- * @param jobs - The jobs the user clicked on.
- */
-const showJobs = (jobs: Job[]): void => {
-  const ul = document.getElementById("jobs") as HTMLUListElement
-  ul.innerHTML = ""
-  jobs.forEach((job) => {
-    const div = document.createElement("div")
-    const title = document.createElement("p")
-    const link = document.createElement("a")
-    const image = document.createElement("img")
-    image.src = job.logo
-    link.href = job.url
-    link.innerText = "website"
-    title.innerHTML = job.title
-
-    div.append(image)
-    div.appendChild(link)
-    div.appendChild(title)
-    div.setAttribute("style", "margin: 1em; padding: 1em; background: white; border-radius: 5px; overflow: hidden;")
-
-    ul.appendChild(div)
-  })
-}
-/**
- * Gets called when the user clicks on a cluster.
- *
- * Depending on our test setup we either zoom in and display jobs only if we cannot zoom in any further.
- * Or we zoom in and show always.
- *
- * @param atlas
- * @param jobs
- */
-const handleClick = (atlas: Atlas, jobs: Job[], loc: RawLocation[]): void => {
-  let visibleJobs = globalStore.getState().visibleJobs
-  if (process.env.TEST_DISPLAY_ALWAYS === "true") {
-    showJobs(jobs)
-  } 
-  else {
-    let coordinates: number[][] = []
-      let lat, lon : number
-      for(let j = 0; j < loc.length; j++){
-        lon = parseFloat(loc[j].lng)
-        lat = parseFloat(loc[j].lat)
-        coordinates.push([lon,lat])
-      }
-    if (loc.length > 1) {
-      // Zoom into Locations A Variante
-      atlas.JobLayer.modifySelectorPoint(boundingExtent(coordinates))
-      // atlas.zoomToBuildedExtent(coordinates)
-      let jobs: Job[] = []
-      for(let i = 0; i < loc.length ; i++){
-        for(let j = 0; j < visibleJobs.length; j++){
-          if(loc[i].IDs.indexOf(visibleJobs[j].id.toString()) != -1 ){
-            jobs.push(visibleJobs[j])
-          }
-        }
-      }
-      showJobs(jobs)
-    }
-   else {
-      // Show jobs of that location
-      atlas.JobLayer.modifySelectorPoint(boundingExtent(coordinates))
-      let jobids = loc[0].IDs
-      let jobs: Job[] = []
-      for(let i = 0; i < visibleJobs.length; i++){
-        if(jobids.indexOf(visibleJobs[i].id.toString()) != -1 ){
-          jobs.push(visibleJobs[i])
-        }
-      }
-      showJobs(jobs)
-    }
-  }
-}
 
 const atlas = new Atlas("map-container")
 
@@ -102,8 +24,9 @@ atlas.subscribe(["STATE_CHANGE_VISIBLEJOBS"], (state: State) => {
 atlas.subscribe(["STATE_CHANGE_SELECTEDLOCATION"], (state: State) => {
   handleClick(atlas, state.selectedJobs, state.selectedLocation)
 })
-
-
+atlas.subscribe(["STATE_CHANGE_JOBLOCATIONS"],(state:State) => {
+  showJobs(state.visibleJobs)
+})
 // Get Elements of HTML
 const searchField = document.getElementById("searchField") as HTMLInputElement
 const radVal = document.getElementById("radVal") as HTMLInputElement
@@ -169,25 +92,7 @@ sample.jobs(5000).then( (jobs)=>{
 
 new Jobs("https://raw.githubusercontent.com/chronark/atlas/master/static/rawJobs.json").get().then((jobs) => {
   globalStore.dispatch("setJobs", jobs)
-
-  /*new Charon().forwardGeocoding("Bayern").then((geojson: GeocodingResponseObject | undefined) => {
-    if (geojson) {
-      jobs.push({
-        corp: "Bayern",
-        locations: [geojson.features],
-        date: "",
-        id: 0,
-        logo: "",
-        // TODO a score must be added
-        score: Math.random(),
-        title: "",
-        type: "",
-        url: "",
-      })
-      atlas.setJobs(jobs)
-      
-    }
-  })*/
+  showJobs(jobs)
 })
 let orte: RawLocation[] = [
   {
@@ -7628,6 +7533,82 @@ let orte: RawLocation[] = [
 ]
 globalStore.dispatch("setJobLocationAll", orte)
 
+/**
+ * Displays a list of jobs under the map.
+ *
+ * @param jobs - The jobs the user clicked on.
+ */
+ const showJobs = (jobs: Job[]): void => {
+  const ul = document.getElementById("jobs") as HTMLUListElement
+  ul.innerHTML = ""
+  jobs.forEach((job) => {
+    const div = document.createElement("div")
+    const title = document.createElement("p")
+    const link = document.createElement("a")
+    const image = document.createElement("img")
+    image.src = job.logo
+    link.href = job.url
+    link.innerText = "website"
+    title.innerHTML = job.title
+
+    div.append(image)
+    div.appendChild(link)
+    div.appendChild(title)
+    div.setAttribute("style", "margin: 1em; padding: 1em; background: white; border-radius: 5px; overflow: hidden;")
+
+    ul.appendChild(div)
+  })
+}
+/**
+ * Gets called when the user clicks on a cluster.
+ *
+ * Depending on our test setup we either zoom in and display jobs only if we cannot zoom in any further.
+ * Or we zoom in and show always.
+ *
+ * @param atlas
+ * @param jobs
+ */
+const handleClick = (atlas: Atlas, jobs: Job[], loc: RawLocation[]): void => {
+  let visibleJobs = globalStore.getState().visibleJobs
+  if (process.env.TEST_DISPLAY_ALWAYS === "true") {
+    showJobs(jobs)
+  } 
+  else {
+    let coordinates: number[][] = []
+      let lat, lon : number
+      for(let j = 0; j < loc.length; j++){
+        lon = parseFloat(loc[j].lng)
+        lat = parseFloat(loc[j].lat)
+        coordinates.push([lon,lat])
+      }
+    if (loc.length > 1) {
+      // Zoom into Locations A Variante
+      atlas.JobLayer.modifySelectorPoint(boundingExtent(coordinates))
+      // atlas.zoomToBuildedExtent(coordinates)
+      let jobs: Job[] = []
+      for(let i = 0; i < loc.length ; i++){
+        for(let j = 0; j < visibleJobs.length; j++){
+          if(loc[i].IDs.indexOf(visibleJobs[j].id.toString()) != -1 ){
+            jobs.push(visibleJobs[j])
+          }
+        }
+      }
+      showJobs(jobs)
+    }
+   else {
+      // Show jobs of that location
+      atlas.JobLayer.modifySelectorPoint(boundingExtent(coordinates))
+      let jobids = loc[0].IDs
+      let jobs: Job[] = []
+      for(let i = 0; i < visibleJobs.length; i++){
+        if(jobids.indexOf(visibleJobs[i].id.toString()) != -1 ){
+          jobs.push(visibleJobs[i])
+        }
+      }
+      showJobs(jobs)
+    }
+  }
+}
 
 
 //#region UserVerhalten Erfassung

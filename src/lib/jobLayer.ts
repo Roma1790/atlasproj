@@ -98,10 +98,15 @@ export default class JobLayer {
     if(coordinates.length > 2){
       coordinates = getCenter(transformExtent(coordinates, "EPSG:4326", "EPSG:3857"))
     }
+    /*
     var marker = this.marker.getSource().getFeatures()
     var point = marker[0].getGeometry() as Point
     point.setCoordinates(coordinates)
-    
+    */
+   this.marker.getSource().clear()
+   this.marker.getSource().addFeature(new Feature({
+    geometry: new Point(coordinates)
+  }))
   }
   
 

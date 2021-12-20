@@ -219,7 +219,7 @@ export default class Atlas {
     this.map.getView().animate({
       center: center,
       zoom: zoom,
-      duration: 3500
+      duration: 1200
     })
   }
    /**
@@ -365,7 +365,7 @@ export default class Atlas {
     mainbar.setPosition("left-top")
     this.map.addControl(new FullScreen())
     this.map.addControl(mainbar)
-    mainbar.addControl(this.circleLayer.circleSelectRemoveButton())
+    mainbar.addControl(this.circleLayer.circleSelectRemoveButton(this))
 
     return mainbar
   }
