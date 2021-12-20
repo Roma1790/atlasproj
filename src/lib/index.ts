@@ -7542,21 +7542,18 @@ globalStore.dispatch("setJobLocationAll", orte)
   const ul = document.getElementById("jobs") as HTMLUListElement
   ul.innerHTML = ""
   jobs.forEach((job) => {
-    const div = document.createElement("div")
-    const title = document.createElement("p")
+    const item = document.createElement("li")
     const link = document.createElement("a")
     const image = document.createElement("img")
+    const text = document.createElement("p")
     image.src = job.logo
     link.href = job.url
     link.innerText = "website"
-    title.innerHTML = job.title
-
-    div.append(image)
-    div.appendChild(link)
-    div.appendChild(title)
-    div.setAttribute("style", "margin: 1em; padding: 1em; background: white; border-radius: 5px; overflow: hidden;")
-
-    ul.appendChild(div)
+    text.innerHTML = job.title
+    item.append(image)
+    item.append(text)
+    item.append(link)
+    ul.appendChild(item)
   })
 }
 /**
@@ -7606,6 +7603,10 @@ const handleClick = (atlas: Atlas, jobs: Job[], loc: RawLocation[]): void => {
         }
       }
       showJobs(jobs)
+      if(!loc[0].IDs.includes(",")){
+        alert("pdf abbilden..")
+      }
+      // Zeige Pdf ? 
     }
   }
 }
