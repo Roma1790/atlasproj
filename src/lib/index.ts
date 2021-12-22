@@ -7542,6 +7542,10 @@ globalStore.dispatch("setJobLocationAll", orte)
   const ul = document.getElementById("jobs") as HTMLUListElement
   ul.innerHTML = ""
   jobs.forEach((job) => {
+    const imagecontainer = document.createElement("div")
+    const textcontainer = document.createElement("div")
+    imagecontainer.setAttribute("class", "imageContainer")
+    textcontainer.setAttribute("class", "textContainer")
     const item = document.createElement("li")
     const link = document.createElement("a")
     const image = document.createElement("img")
@@ -7550,9 +7554,11 @@ globalStore.dispatch("setJobLocationAll", orte)
     link.href = job.url
     link.innerText = "website"
     text.innerHTML = job.title
-    item.append(image)
-    item.append(text)
-    item.append(link)
+    imagecontainer.append(image)
+    textcontainer.append(text)
+    textcontainer.append(link)
+    item.append(imagecontainer)
+    item.append(textcontainer)
     ul.appendChild(item)
   })
 }
@@ -7606,7 +7612,7 @@ const handleClick = (atlas: Atlas, jobs: Job[], loc: RawLocation[]): void => {
       if(!loc[0].IDs.includes(",")){
         alert("pdf abbilden..")
       }
-      // Zeige Pdf ? 
+     
     }
   }
 }

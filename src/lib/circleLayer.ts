@@ -99,21 +99,24 @@ export default class CircleLayer {
       const ul = document.getElementById("jobs") as HTMLUListElement
       ul.innerHTML = ""
       jobs.forEach((job) => {
-        const div = document.createElement("div")
-        const title = document.createElement("p")
+        const imagecontainer = document.createElement("div")
+        const textcontainer = document.createElement("div")
+        imagecontainer.setAttribute("class", "imageContainer")
+        textcontainer.setAttribute("class", "textContainer")
+        const item = document.createElement("li")
         const link = document.createElement("a")
         const image = document.createElement("img")
+        const text = document.createElement("p")
         image.src = job.logo
         link.href = job.url
         link.innerText = "website"
-        title.innerHTML = job.title
-    
-        div.append(image)
-        div.appendChild(link)
-        div.appendChild(title)
-        div.setAttribute("style", "margin: 1em; padding: 1em; background: white; border-radius: 5px; overflow: hidden;")
-    
-        ul.appendChild(div)
+        text.innerHTML = job.title
+        imagecontainer.append(image)
+        textcontainer.append(text)
+        textcontainer.append(link)
+        item.append(imagecontainer)
+        item.append(textcontainer)
+        ul.appendChild(item)
       })
     }
     return new Button({
