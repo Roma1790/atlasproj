@@ -7,7 +7,7 @@ import { globalStore } from "../state/store";
 import Button from "ol-ext/control/Button"
 import Atlas from "./atlas";
 import { Job } from "../types/customTypes";
-import JobLayer from "./jobLayer";
+
 
 export default class CircleLayer {
     private circlelayer: VectorLayer<VectorSource<Geometry>>

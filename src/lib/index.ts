@@ -12,7 +12,7 @@ import { boundingExtent} from "ol/extent"
 require('./../css/style.css');
 
 const atlas = new Atlas("map-container")
-console.log("hallo")
+
 // Update UI StateChange Handler
 atlas.subscribe(["STATE_CHANGE_ALLJOBS"], (state: State) => {
   document.getElementById("allJobsCounter")!.innerText = state.allJobs.length.toString()

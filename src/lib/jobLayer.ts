@@ -1,19 +1,14 @@
-import { Area, Job, Location, RawLocation, SingleLocation } from "../types/customTypes"
+import {  RawLocation} from "../types/customTypes"
 import AnimatedCluster from "ol-ext/layer/AnimatedCluster"
 import Cluster from "ol/source/Cluster"
 import Feature from "ol/Feature"
-import GeoJSON from "ol/format/GeoJSON"
 import JobStyle from "../styles/jobs"
 import { Geometry, Point } from "ol/geom"
 import VectorLayer from "ol/layer/Vector"
 import VectorSource from "ol/source/Vector"
-import { fromLonLat, Projection, transformExtent } from "ol/proj.js"
-import { isSingleLocation } from "./util"
-import { Coordinate, scale } from "ol/coordinate"
-import { Console } from "console"
-import { text } from "stream/consumers"
+import { fromLonLat, transformExtent } from "ol/proj.js"
 import { Icon, Style } from "ol/style"
-import { boundingExtent, getCenter } from "ol/extent"
+import {  getCenter } from "ol/extent"
 
 
 /**
