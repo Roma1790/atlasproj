@@ -28,7 +28,8 @@
                         </select>
                         <div id="KT_1__" onclick="event.stopPropagation()"><input type="button" name="KT_1"
                                 id="KT_1_button" value=" Branche" placeholder=" Branche" class="inputField">
-                            <div class="checkbox_auswahl" id="KT_1_list" style="display: none;"><input type="checkbox"
+                                <!-- clean up after checking database -->
+                            <div class="branchSelector" id="KT_1_list" style="display: none;" onclick="event.stopPropagation()"><input type="checkbox"
                                     class="checkboxes" id="KT_1_1" value="1" name="KT_1"><label for="KT_1_1"
                                     id="KT_1_1_label">&nbsp;Abfallwirtschaft</label><br><input type="checkbox"
                                     class="checkboxes" id="KT_1_2" value="2" name="KT_1"><label for="KT_1_2"
@@ -131,8 +132,7 @@
                         </div><input class="inputField" placeholder=" Stichwortsuche">
                         <div><span class="allJobs">All Jobs</span> <span id="allJobsCounter"></span></div>
                     </div>
-                    <div class="rightForm">
-                        <input class="inputField" placeholder=" Ort" id="searchField">
+                    <div class="rightForm"><input class="inputField" placeholder=" Ort" id="searchField">
                         <div class="radText"><span>In einem <input maxlength="3" class="radChange" id="radVal"> km
                                 Radius</span></div><input type="button" class="upperSectionButton"
                             onclick="more_options()" value="Mehr Optionen"> <button class="upperSectionButton"
@@ -142,9 +142,15 @@
                     </div>
                 </form>
             </div>
-            <ul id="jobs"></ul>
+            <div id="jobList">
+                <ul id="jobs" style="display: block;"></ul>
+                <div id="map-containerSmall" style="display: none;"></div>
+            </div>
         </div>
-        <div id="map-container"></div>
+        <div id="mapSwitch">
+            <div id="map-container" style="display: block;"></div>
+            <ul id="jobsBig" style="display: none;"></ul>
+        </div>
     </div>
 </body>
 

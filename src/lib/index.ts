@@ -26,6 +26,7 @@ atlas.subscribe(["STATE_CHANGE_SELECTEDLOCATION"], (state: State) => {
 })
 atlas.subscribe(["STATE_CHANGE_JOBLOCATIONS"],(state:State) => {
   showJobs(state.visibleJobs)
+  showJobsBig(state.visibleJobs)
 })
 // Get Elements of HTML
 const searchField = document.getElementById("searchField") as HTMLInputElement
@@ -33,6 +34,8 @@ const radVal = document.getElementById("radVal") as HTMLInputElement
 const searchForm = document.getElementById("searchForm")
 const branchSelector = document.getElementById("KT_1_button")
 const checkbox = document.getElementById("KT_1_list") as HTMLDivElement
+//change jobs to "JobList" when ready
+const MapSwitch = document.getElementById("jobList") as HTMLDivElement
 // grade nicht verwendet const fakultaet = document.getElementById("fakultaet") as HTMLSelectElement
 const category = document.getElementById("kategorie") as HTMLSelectElement
 const branche = document.getElementsByClassName("checkboxes") as HTMLCollectionOf<HTMLInputElement>
@@ -93,6 +96,7 @@ sample.jobs(5000).then( (jobs)=>{
 new Jobs("https://raw.githubusercontent.com/chronark/atlas/master/static/rawJobs.json").get().then((jobs) => {
   globalStore.dispatch("setJobs", jobs)
   showJobs(jobs)
+  showJobsBig(jobs)
 })
 let orte: RawLocation[] = [
   {
@@ -7563,6 +7567,84 @@ globalStore.dispatch("setJobLocationAll", orte)
   })
 }
 /**
+ * Displays a list of jobs instead of the map.
+ *
+ * @param jobs - The jobs the user clicked on.
+ */
+ const showJobsBig = (jobs: Job[]): void => {
+  const ul = document.getElementById("jobsBig") as HTMLUListElement
+ ul.innerHTML = ""
+ jobs.forEach((job) => {
+   const imagecontainer = document.createElement("div")
+   const textcontainer = document.createElement("div")
+   imagecontainer.setAttribute("class", "imageContainer")
+   textcontainer.setAttribute("class", "textContainer")
+   const item = document.createElement("li")
+   const link = document.createElement("a")
+   const image = document.createElement("img")
+   const text = document.createElement("p")
+   image.src = job.logo
+   link.href = job.url
+   link.innerText = "website"
+   text.innerHTML = job.title
+   imagecontainer.append(image)
+   textcontainer.append(text)
+   textcontainer.append(link)
+   item.append(imagecontainer)
+   item.append(textcontainer)
+   ul.appendChild(item)
+ })
+}
+// // will be the map and job switch
+// MapSwitch.addEventListener("click", function (this: HTMLDivElement) {
+  //   let bigDivMap = document.getElementById("map-container")
+//   let bigDivJob = document.getElementById("jobsBig")
+//   let smallDivJob = document.getElementById("jobs")
+//   let smallDivMap = document.getElementById("map-containerSmall")
+//   if(bigDivMap!.style.display == "block"){
+  //     bigDivMap!.style.display = "none"
+//     bigDivJob!.style.display = "block"
+//     // smallDivJob!.style.display = "none"
+//     // smallDivMap!.style.display = "block"
+//     let visibleJobs = globalStore.getState().visibleJobs
+//     showJobsBig(visibleJobs)
+//   }
+//   else{
+//     bigDivJob!.style.display = "none"
+//     bigDivMap!.style.display = "block"
+//     // smallDivMap!.style.display = "none"
+//     // smallbDivJob!.style.display = "block"
+//     // let visibleJobs = globalStore.getState().visibleJobs
+//     // showJobs(visibleJobs)
+//   }
+// })
+
+MapSwitch?.addEventListener("click", () =>  {
+  let bigDivMap = document.getElementById("map-container")
+  let bigDivJob = document.getElementById("jobsBig")
+  let smallDivJob = document.getElementById("jobs")
+  let smallDivMap = document.getElementById("map-containerSmall")
+  let visibleJobs = globalStore.getState().visibleJobs
+  showJobsBig(visibleJobs)
+  console.log("click1");
+  
+  if(smallDivJob!.style.display === "block"){
+      smallDivJob!.style.display = "none"
+      smallDivMap!.style.display = "block"
+      bigDivMap!.style.display = "none"
+      bigDivJob!.style.display = "block"
+      console.log("click2");
+    }
+    else{
+      smallDivMap!.style.display = "none"
+      smallDivJob!.style.display = "block"
+      bigDivJob!.style.display = "none"
+      bigDivMap!.style.display = "block"
+
+      console.log("click3");
+    }
+})
+/**
  * Gets called when the user clicks on a cluster.
  *
  * Depending on our test setup we either zoom in and display jobs only if we cannot zoom in any further.
@@ -7575,6 +7657,7 @@ const handleClick = (atlas: Atlas, jobs: Job[], loc: RawLocation[]): void => {
   let visibleJobs = globalStore.getState().visibleJobs
   if (process.env.TEST_DISPLAY_ALWAYS === "true") {
     showJobs(jobs)
+    showJobsBig(jobs)
   } 
   else {
     let coordinates: number[][] = []
@@ -7643,12 +7726,13 @@ stopButton?.addEventListener("click", () => {
 
 const clickedElementList: string[] = []
 
-//visibility trigger of the 
+//visibility trigger of the branchSelector
 branchSelector?.addEventListener("click", () => {
   let div = document.getElementById("KT_1_list")
   div!.style.display = div!.style.display == "none" ? "block" : "none"
 })
 
+// show the selected branches in the bar
 checkbox.childNodes.forEach((child) => {
   if (child.nodeName === "INPUT") {
     child.addEventListener("click", () => {
@@ -7682,13 +7766,13 @@ checkbox.childNodes.forEach((child) => {
   }
 })
 
-//implementieren wenn mehr Optionen gebraucht werden
+//implement when more options are needed
 // function more_options() {
 //   let div = document.getElementById("more_options_div")
 //   div!.style.display = div!.style.display == "none" ? "block" : "none"
 // }
 
-
+//filter to only allow numerical input
 function setInputFilter(textbox: any, inputFilter: any) {
   ;["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function (event) {
     textbox.addEventListener(event, function (this: any) {
