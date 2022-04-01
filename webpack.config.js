@@ -74,7 +74,7 @@ module.exports = {
       template: "./src/lib/index.html",
     }),
     new webpack.EnvironmentPlugin({
-      CHARON_URL: "http://jbs-osm-test.informatik.fh-nuernberg.de",
+      CHARON_URL: "http://jbs-docker.informatik.fh-nuernberg.de",
       TEST_DISPLAY_ALWAYS: "false",
     }),
   ],
