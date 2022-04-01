@@ -99,18 +99,16 @@ export class Jobs {
 
   /**
    * Public get or post method. 
+   * GET jobs und orte
    * TODO: Anpassen an Kriterien
    *
    *
    * @returns
    * @memberof Jobs
    */
-  public async get(kategorie?: number, fakultaet?: number, branche?: number[], postreq?: boolean): Promise<Job[]> {
+  public async get(kategorie?: number, fakultaet?: number, branche?: number[], postreq?: boolean): Promise<[Job[], RawLocation[]]> {
     const rawJobs = await this.fetchRawJobs(kategorie, fakultaet, branche, postreq)
-    return this.transform(rawJobs)
-  }
-  public async getRawLoc(kategorie?: number, fakultaet?: number, branche?: number[], postreq?: boolean): Promise<RawLocation[]> {
-    const rawJobs = await this.fetchRawJobs(kategorie, fakultaet, branche, postreq)
-    return rawJobs.orte
+    return [this.transform(rawJobs),rawJobs.orte]
+    
   }
 }
