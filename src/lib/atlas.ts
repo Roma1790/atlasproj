@@ -186,7 +186,7 @@ export default class Atlas {
  */
   async radiusSearch(query: string,radius:number,postreq:boolean, kategorie?: string,  branche?: string[]): Promise<void> {
     // Modify that Request goes to Our backend not to nominatim at forwardGeocoding2
-    const geojson = await new Charon().forwardGeocoding2(query)
+    const geojson = await new Charon().forwardGeocoding(query)
     if (geojson === undefined) {
       console.error("Could not find " + query)
        return
