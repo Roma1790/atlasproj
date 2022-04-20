@@ -57,13 +57,13 @@ if (searchField !== null && searchForm !== null) {
     const query = searchField.value
     const radQuery = parseInt(radVal.value)
 
-    console.log("category is now  :" + categoryVal + " and brancheVal is now  :" + brancheVal)
+    
     if (categoryVal !== "0" || arrayContainsContent(brancheVal)) {
       postreq = true
     }
     if (postreq) {
       // if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
-      console.log("radiussearching... with post")
+      
       atlas.radiusSearch(query, radQuery, postreq, categoryVal, brancheVal)
 
       // else{
@@ -71,7 +71,7 @@ if (searchField !== null && searchForm !== null) {
       // }
     } else {
       // if((document.getElementById("radSearch") as HTMLInputElement).checked == true){
-      console.log("radiussearching... no post ")
+      
       atlas.radiusSearch(query, radQuery, postreq)
       // else{
       //   atlas.search(query,postreq)
