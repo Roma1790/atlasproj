@@ -1,28 +1,27 @@
 import Bar from "ol-ext/control/Bar"
 import BaseLayer from "ol/layer/Base"
-import Button from "ol-ext/control/Button"
 import Charon from "../apis/charon"
 import FullScreen from "ol/control/FullScreen"
-import Geometry from "ol/geom/Geometry"
 import JobLayer from "./jobLayer"
-import polygonStyle from "../styles/polygon"
 import SelectionLayer from "./selectionLayer"
-import VectorLayer from "ol/layer/Vector"
-import VectorSource from "ol/source/Vector"
 import View from "ol/View"
 import { Attribution, OverviewMap, Zoom } from "ol/control"
-import { Draw, Modify, Select } from "ol/interaction"
-import { Extent, boundingExtent, buffer } from "ol/extent"
+import { Select } from "ol/interaction"
+import { Extent, boundingExtent} from "ol/extent"
 import { filterJobs } from "./geometryFilter"
 import { fromLonLat, transformExtent } from "ol/proj"
-import { Job, SingleLocation } from "../types/customTypes"
-import { Map, Feature } from "ol"
-import { SelectEvent } from "ol/interaction/Select"
-import { shiftKeyOnly } from "ol/events/condition"
+import { Job, RawLocation } from "../types/customTypes"
+import { Map, Feature, } from "ol"
 import { State, Store, globalStore } from "../state/store"
 import TileLayer from "ol/layer/Tile"
 import OSM from "ol/source/OSM"
 import { metrics } from "./tracking"
+import { degrees2meters } from "./util"
+import { Geometry } from "ol/geom"
+import { Style } from "ol/style"
+import CircleStyle from "ol/style/Circle"
+import CircleLayer from "./circleLayer"
+
 
 /**
  * Initial map configuration options.
@@ -65,7 +64,8 @@ export default class Atlas {
   private mapID: string
   public map: Map
   public store: Store
-  private JobLayer: JobLayer
+  public JobLayer: JobLayer
+  public circleLayer: CircleLayer
   private zIndices: Record<string, number>
   private selectionLayer: SelectionLayer
 
@@ -82,22 +82,18 @@ export default class Atlas {
       tiles: 0,
       countries: 10,
       circleSelect: 10,
-      jobs: 1000,
+      jobs: 500,
     }
 
     this.map = this.build(opts || {})
-    this.selectionLayer = this.createSelectionLayer()
+    this.selectionLayer = new SelectionLayer()
     this.map.addLayer(this.selectionLayer)
+    this.addCircleLayer()
     this.addControls()
-    this.addCircleSelect()
     this.buildJobLayer()
-
+    this.addVisibleJobsHook()
     this.addGeometriesHook()
     this.addJobFilterHook()
-    this.addVisibleJobsHook()
-
-    this.addCountries()
-
     this.addSelect()
   }
 
@@ -138,107 +134,155 @@ export default class Atlas {
    * @returns
    * @memberof Atlas
    */
-  async search(query: string): Promise<void> {
+  async search(query: string,postreq:boolean, kategorie?: string, branche?: string[]): Promise<void> {
+    // 
     if (query.length > 0) {
+      /* POST and then setjobs..
+        if(postreq){
+        new Jobs().get().then((jobs)=>{
+          this.store.dispatch("setJobs",jobs)
+      }
+      })*/
       const geojson = await new Charon().forwardGeocoding(query)
       if (geojson === undefined) {
         console.error("Could not find " + query)
         return
       }
+      let geo = geojson.features[0].geometry
       const features = this.selectionLayer.addFeatureFromGeojson(geojson)
-      this.zoomToExtent(features[0].getGeometry().getExtent())
+      // Feature stays in Map maybe delete?
+      let view = this.map.getView();
+      let zoom = view.getZoom();
+      let viewcenter = view.getCenter();
+      const geometry = features[0].getGeometry()
+      // Select searched place to be visible
+      globalStore.dispatch("setSelectedGeometries",[geometry])
+      // Zoom out when your zoomed in
+      if(zoom as number > 4){
+        // Timeout to give the map time to update its view with visible jobs
+        setTimeout( () => {this.zoomTo(viewcenter as number[], 4)}, 400)
+        setTimeout( () => {
+          this.map.getView().fit((geometry as Geometry).getExtent(), {duration: 1000, maxZoom: 19 })
+        }, 3700)
+      }
+      else{
+        setTimeout(()=>{
+          this.map.getView().fit((geometry as Geometry).getExtent(), {duration: 1000, maxZoom: 19 })
+        }, 400)
+        //view.animate({zoom: zoom - 8}, {center: view.getCenter()});
+    //setTimeout(()=>{this.map.getView().fit(extent, { duration: 3000 })},200)
+    this.map.getView().fit((geometry as Geometry).getExtent(), {duration: 1000, maxZoom: 19 })
+      }
     }
   }
+/**
+ * 
+ * @param query  searchquery
+ * @param radius  radius in km
+ * @param kategorie  category of job as id
+ * @param fakultaet  
+ * @param branche  branche as id array
+ * @returns doing a radiussearch on the map
+ */
+  async radiusSearch(query: string,radius:number,postreq:boolean, kategorie?: string,  branche?: string[]): Promise<void> {
+    // Modify that Request goes to Our backend not to nominatim at forwardGeocoding2
+    const geojson = await new Charon().forwardGeocoding(query)
+    if (geojson === undefined) {
+      console.error("Could not find " + query)
+       return
+    }
+    // Coordinate = [lat,lon] = "EPSG:4236"
+    // Coordinate = [x in meter, y in meter] = "EPSG:3857"
+    let latlon = geojson.features[0].geometry.coordinates
+    let coordinate = degrees2meters(latlon[0],latlon[1])
+    //Create a new Circle in the circlelayer.
+    let circle = this.circleLayer.getCircle()
+    this.circleLayer.setCircle(coordinate, radius*1000)
+    //Set circle to be visible.
+    globalStore.dispatch("setSelectedGeometries",[circle])
+    //Zoom into Circle
+    setTimeout(()=>{
+      this.map.getView().fit(circle.getExtent(), {duration: 1000, maxZoom: 19 })
+    },500) 
+  }
 
   /**
-   * Move the viewport to show the entire extent.
-   * This will zoom in or out as necessary.
+   * Moves the viewport to a center and zoom level.
+   * Can be used to zoom in on clusters.
    *
-   * @param extent
+   * @private
+   * @param  center
+   * @param [zoom=16]
    * @memberof Atlas
    */
-  public zoomToExtent(extent: Extent): void {
-    this.map.getView().fit(extent, { duration: 1500 })
+   public zoomTo(center: number[], zoom = 16): void {
+    this.map.getView().animate({
+      center: center,
+      zoom: zoom,
+      duration: 1200
+    })
   }
-
-  /**
-   * Load initial set of countries and add them to the map without showing them to the user.
-   */
-  public async addCountries(): Promise<void> {
-    const geojson = await fetch(
-      "https://raw.githubusercontent.com/openlayers/openlayers/main/examples/data/geojson/countries.geojson",
-    ).then((res) => res.json())
-    const geometries = SelectionLayer.convertGeoJsonToGeometries(geojson)
-    globalStore.dispatch("addGeometries", geometries)
-    this.selectionLayer.setFeaturesFromGeometry(geometries)
-  }
-
-  /**
+   /**
    * Add the possibilty to select features.
    *
    * This handles the countries to be selected as well as clicking on job clusters.
    */
-  private addSelect(): void {
-    const select = new Select()
-
-    this.map.addInteraction(select)
-    select.on("select", (e: SelectEvent) => {
-      metrics.addSelect()
-      // Remove all selected geometries when the user clicks on empty space
-      if (e.selected.length === 0) {
-        globalStore.dispatch("unselectGeometries", globalStore.getState().selectedGeometries)
-      }
-
-      e.target.getFeatures().forEach((f: Feature) => {
-        const layerName = select.getLayer(f).get("name")
-
-        switch (layerName) {
-          case "cluster": {
-            const clickedClusters = f.get("features")
-            const clickedJobs: Job[] = clickedClusters.map((f: Feature) => f.get("job"))
-
-            globalStore.dispatch("setSelectedJobs", clickedJobs)
-            break
-          }
-
-          case "selectionLayer": {
-            const geometry = f.getGeometry()
-            const isSelected = globalStore.getState().selectedGeometries.includes(geometry)
-            if (isSelected) {
-              globalStore.dispatch("unselectGeometries", [geometry])
-            } else {
-              globalStore.dispatch("selectGeometries", [geometry])
-            }
-
-            break
-          }
-        }
+    private addSelect(): void {
+      const select = new Select({
+        layers: [this.JobLayer.animatedCluster],
+        style: new Style({
+          image: new CircleStyle({
+            radius: 0,
+          }),
+        }) 
       })
-    })
-  }
-
-  /**
-   * Create a new Polygon layer and add the onClick event listener.
-   *
-   * Will be called once in the constructor.
-   *
-   * @private
-   * @returns A new polygon layer for countries or other areas the user selected.
-   * @memberof Atlas
-   */
-  private createSelectionLayer(): SelectionLayer {
-    const selectionLayer = new SelectionLayer()
-    return selectionLayer
-  }
-
+      this.map.addInteraction(select)
+      let selectedLoc: RawLocation[]
+      select.on("select", (e) => {
+        var selectedFeatures = select.getFeatures()
+        selectedFeatures.forEach((f: Feature<Geometry>) => {
+          const clickedClusters = f.get("features")
+          const clickedLoc: RawLocation[] = clickedClusters.map((f: Feature<Geometry>) => f.get("job"))
+          // Add filtered Location again to JobLocations
+          if(selectedLoc){
+            globalStore.dispatch("addJobLocation", selectedLoc)
+            selectedLoc = []
+          }
+          // Sort JobLocation and Cluster in ascending Order and than create a filteredLocation[] 
+          // after that sequence the filterLoc does not contain contents of clickedLoc, a marker 
+          // is being placed on that position- currently linear search--  maybe binary? 
+          let filterloc: RawLocation[] = []
+          let j = 0;   
+          clickedLoc.sort((first, second) => 0 - (first.IDs > second.IDs ? -1 : 1));
+          globalStore.getState().jobLocations.sort((first, second) => 0 - (first.IDs > second.IDs ? -1 : 1));
+          for(let i = 0; i < globalStore.getState().jobLocations.length ; i++){
+            if(j == clickedLoc.length){
+              filterloc.push(globalStore.getState().jobLocations[i])
+            }
+            else if(globalStore.getState().jobLocations[i].IDs != clickedLoc[j].IDs){
+              filterloc.push(globalStore.getState().jobLocations[i])
+            }
+            else{
+              j++
+            }
+          }
+          // SetJobLocation for display on map and selectLoc for display in table
+          globalStore.dispatch("setJobLocation", filterloc)
+          globalStore.dispatch("setSelectedLocation", clickedLoc)
+          selectedLoc = clickedLoc
+          
+        })
+      })
+    }
   /**
    * Subscribes to the store to update the jobs on the map.
    *
    * @memberof Atlas
    */
   addVisibleJobsHook(): void {
-    globalStore.events.subscribe(["STATE_CHANGE_VISIBLEJOBS"], (state) => {
-      this.JobLayer.setJobs(state.visibleJobs)
+    globalStore.events.subscribe(["STATE_CHANGE_JOBLOCATIONS", "STATE_CHANGE_VISIBLEJOBS"], (state) => {
+      this.JobLayer.setJobs(state.jobLocations)
+      
     })
   }
 
@@ -262,15 +306,27 @@ export default class Atlas {
   addJobFilterHook(): void {
     globalStore.events.subscribe(["STATE_CHANGE_ALLJOBS", "STATE_CHANGE_SELECTEDGEOMETRIES"], (state) => {
       let newShownJobs: Job[] = []
-
+      let newShownLocation: RawLocation[] = []
+      
       if (globalStore.getState().selectedGeometries.length === 0) {
         newShownJobs = state.allJobs
+        newShownLocation = state.jobLocationsAll
       } else {
         newShownJobs = filterJobs(state.allJobs, {
           geometries: state.selectedGeometries,
         })
+        // Funktioniert zwar ist aber nicht gut ...
+        for(let i = 0; i < state.jobLocationsAll.length; i++){
+          for(let j = 0; j< newShownJobs.length; j++){
+            if(state.jobLocationsAll[i].IDs.includes(newShownJobs[j].id.toString()) && !newShownLocation.includes(state.jobLocationsAll[i])){
+              newShownLocation.push(state.jobLocationsAll[i])
+            } 
+          }
+        }
       }
       globalStore.dispatch("setVisibleJobs", newShownJobs)
+      globalStore.dispatch("setJobLocation", newShownLocation)
+      
     })
   }
 
@@ -290,6 +346,7 @@ export default class Atlas {
     if (this.map.getLayers().getArray().indexOf(layer) === -1 || overwrite) {
       if (name !== "") {
         layer.set("name", name)
+        
       }
       this.map.addLayer(layer)
     }
@@ -306,232 +363,19 @@ export default class Atlas {
   private addControls(): any {
     const mainbar = new Bar()
     mainbar.setPosition("left-top")
-
     this.map.addControl(new FullScreen())
     this.map.addControl(mainbar)
-    mainbar.addControl(this.circleSelectRemoveButton())
+    mainbar.addControl(this.circleLayer.circleSelectRemoveButton(this))
 
     return mainbar
   }
-
   /**
-   * Create a button to remove the circle selection.
-   * TODO: Move this outside of the class.
-   *
-   * @private
-   * @returns
-   * @memberof Atlas
+   * Creates the CircleLayer, mainly used in radius searching
    */
-  private circleSelectRemoveButton(): void {
-    return new Button({
-      html: "R",
-      className: "",
-      title: "Remove Circle Selection",
-      handleClick: () => {
-        this.clearSource(this.getDrawLayer())
-      },
-    })
-  }
-
-  /**
-   * Remove layers from the map.
-   *
-   * @private
-   * @param names
-   * @memberof Atlas
-   */
-  private removeLayersByNames(names: string[]): void {
-    const layers = this.getLayersByNames(names)
-    layers.forEach((layer: BaseLayer) => {
-      this.map.removeLayer(layer)
-    })
-  }
-
-  /**
-   * Moves the viewport to a center and zoom level.
-   * Can be used to zoom in on clusters.
-   *
-   * @private
-   * @param  center
-   * @param [zoom=16]
-   * @memberof Atlas
-   */
-  private zoomTo(center: number[], zoom = 16): void {
-    this.map.getView().animate({
-      center: center,
-      zoom: zoom,
-    })
-  }
-
-  /**
-   * Add the possibility to draw a circle on the map.
-   *
-   * TODO: Refactor this outside of the map class.
-   *
-   * @private
-   * @memberof Atlas
-   */
-  private addCircleSelect(): void {
-    /**
-     * Calls the necessary functions to filter through visible jobs after drawing.
-     *
-     * @param draw
-     * @param modify
-     */
-    const handleCircleSelectEvents = (draw: Draw, modify: Modify): void => {
-      /**
-       * Retrieve the circle element from the map in case it exists.
-       *
-       * @returns
-       */
-      const getCircle = (): Geometry | undefined => {
-        const source = this.getDrawLayer().getSource()
-        if (source.getFeatures().length === 1) {
-          return source.getFeatures()[0].get("geometry")
-        }
-
-        return undefined
-      }
-      /**
-       * Update the visible jobs after filtering them.
-       *
-       * The getCircle method in itself is not async, however the underlying code
-       * seems to to store the circle asyncronously.
-       *
-       * Heres a little hack to wait up to 1 second and retry every 100ms to load
-       * the circle and apply the selection.
-       */
-      const onEnd = async (): Promise<void> => {
-        let circle: any
-        let limit = 1000
-        const interval = 100
-        while (!circle && limit > 0) {
-          circle = getCircle()
-          limit -= interval
-          await new Promise((resolve) => setTimeout(resolve, interval))
-        }
-
-        if (circle) {
-          const filteredJobs = filterJobs(globalStore.getState().allJobs, {
-            geometries: globalStore.getState().selectedGeometries,
-            circle: circle,
-          })
-          globalStore.dispatch("setVisibleJobs", filteredJobs)
-        }
-      }
-
-      draw.on("drawend", () => {
-        onEnd()
-        this.clearSource(this.getDrawLayer())
-      })
-
-      modify.on("modifyend", () => {
-        onEnd()
-      })
-    }
-
-    const drawLayer = this.getDrawLayer(true)
-    this.map.addLayer(drawLayer)
-    const modify = new Modify({
-      source: drawLayer.getSource(),
-    })
-    this.map.addInteraction(modify)
-
-    const draw = new Draw({
-      source: drawLayer.getSource(),
-      // @ts-ignore
-      type: "Circle",
-      wrapX: true,
-      condition: shiftKeyOnly,
-      // Sets the style during first transformation
-      style: polygonStyle(),
-    })
-    handleCircleSelectEvents(draw, modify)
-    this.map.addInteraction(draw)
-  }
-
-  /**
-   * Get or create a new layer to draw on.
-   *
-   * @private
-   * @param clear
-   * @returns
-   * @memberof Atlas
-   */
-  private getDrawLayer(clear?: boolean): VectorLayer {
-    let [layer, wasCreated] = this.getOrCreateLayer("drawLayer", {
-      source: new VectorSource(),
-      // Sets the style after transformation
-      style: polygonStyle(),
-    })
-    layer = layer as VectorLayer
-    if (!wasCreated && clear) {
-      this.clearSource(layer)
-    }
-    layer.setZIndex(this.zIndices.circleSelect)
-    return layer
-  }
-
-  /**
-   * Helper function to clear the source of a layer.
-   *
-   * @private
-   * @param  layer
-   * @returns
-   * @memberof Atlas
-   */
-  private clearSource(layer: VectorLayer): VectorLayer {
-    if (typeof layer.getSource === "function") {
-      layer.getSource().clear()
-    }
-    return layer
-  }
-
-  /**
-   * Filter all layers by name.
-   *
-   * @private
-   * @param  names
-   * @returns
-   * @memberof Atlas
-   */
-  private getLayersByNames(names: string[]): VectorLayer[] {
-    const allLayers = this.map.getLayers()
-    const filteredLayers: VectorLayer[] = []
-    allLayers.forEach((layer) => {
-      if (names.includes(layer.get("name"))) {
-        filteredLayers.push(layer as VectorLayer)
-      }
-    })
-    return filteredLayers
-  }
-
-  /**
-   * Try to get a layer by name or create a new one if it doesn't exist.
-   *
-   * @private
-   * @param name
-   * @param  opts
-   * @returns
-   * @memberof Atlas
-   */
-  private getOrCreateLayer(name: string, opts: Record<string, any>): [VectorLayer, boolean] {
-    const layers = this.getLayersByNames([name])
-    let layer: VectorLayer, wasCreated: boolean
-    switch (layers.length) {
-      case 1:
-        layer = (layers[0] as unknown) as VectorLayer
-        wasCreated = false
-        break
-      case 0:
-        layer = new VectorLayer(opts)
-        layer.set("name", name)
-        wasCreated = true
-        break
-      default:
-        throw Error(`I found more than one layer with this name: ${name}`)
-    }
-    return [layer, wasCreated]
+  private addCircleLayer(){
+    this.circleLayer = new CircleLayer()
+    this.map.addLayer(this.circleLayer.getcircleLayer())
+    this.circleLayer.circleAddModify(this)
   }
 
   /**
@@ -560,7 +404,7 @@ export default class Atlas {
     } else {
       return new View({
         center: fromLonLat([0, 45]),
-        zoom: 2,
+        zoom: 0,
       })
     }
   }
@@ -596,7 +440,7 @@ export default class Atlas {
       }),
       new Zoom(),
     ]
-
+    
     const map = new Map({
       target: this.mapID,
       controls: controls,
@@ -619,47 +463,17 @@ export default class Atlas {
     this.JobLayer = new JobLayer(60)
     this.JobLayer.animatedCluster.setZIndex(this.zIndices.jobs)
     this.addLayer(this.JobLayer.animatedCluster, { name: "cluster" })
-    this.addLayer(this.JobLayer.areas, { name: "areas" })
+    this.addLayer(this.JobLayer.marker, {name: "selectedMarker"})
   }
 
-  /**
-   * Loads new jobs into the store.
-   *
-   * This will overwrite the old ones, so please merge your jobs before if you wish to only add jobs.
-   *
-   * @param jobs
-   * @memberof Atlas
-   */
-  public setJobs(jobs: Job[]): void {
-    globalStore.dispatch("setJobs", jobs)
-  }
-
-  /**
-   * Instantly set the map viewport to center on lat/lon and zoom level.
-   *
-   * @param  lon
-   * @param  lat
-   * @param  zoom
-   * @memberof Atlas
-   */
-  public setView(lon: number, lat: number, zoom: number): void {
-    this.map.getView().setCenter([lat, lon])
-    this.map.getView().setZoom(zoom)
-  }
-
-  /**
-   * The new view is set to contain all individual job locations.
-   *
-   * @param locations
-   * @memberof Atlas
-   */
-  public zoomToLocationCluster(locations: SingleLocation[]): void {
-    const coordinates = locations.map((loc) => {
-      return [loc.lon, loc.lat]
-    })
+ /**
+  * Build Extent out of coordinates and then zoom into it. Extent is a Square 
+  * @param coordinates 
+  */
+  public zoomToBuildedExtent(coordinates: number[][]): void {
 
     const extent = transformExtent(boundingExtent(coordinates), "EPSG:4326", "EPSG:3857")
-
-    this.zoomToExtent(buffer(extent, 100_000 / this.map.getView().getZoom()))
+    // this.zoomToExtent(buffer(extent, 100_000 / this.map.getView().getZoom()))
+    this.map.getView().fit(extent, {duration: 1000, maxZoom: 19 })
   }
 }

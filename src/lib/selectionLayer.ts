@@ -12,7 +12,7 @@ import { Style, Fill } from "ol/style"
  * @class SelectionLayer
  * @augments {VectorLayer}
  */
-export default class SelectionLayer extends VectorLayer {
+export default class SelectionLayer extends VectorLayer<VectorSource<Geometry>> {
   /**
    *Creates an instance of SelectionLayer.
    *
@@ -33,7 +33,7 @@ export default class SelectionLayer extends VectorLayer {
    * @param features
    * @memberof SelectionLayer
    */
-  public addFeatures(features: Feature[]): void {
+  public addFeatures(features: Feature<Geometry>[]): void {
     this.getSource().addFeatures(features)
   }
 
@@ -45,7 +45,7 @@ export default class SelectionLayer extends VectorLayer {
    */
   public setFeaturesFromGeometry(geometry: Geometry[]): void {
     const features = geometry.map(
-      (g): Feature =>
+      (g): Feature<Geometry> =>
         new Feature({
           geometry: g,
         }),
@@ -65,8 +65,8 @@ export default class SelectionLayer extends VectorLayer {
   public setVisibleFeatures(geometry: Geometry[]): void {
     this.getSource()
       .getFeatures()
-      .map((f: Feature) => {
-        if (geometry.includes(f.getGeometry())) {
+      .map((f: Feature<Geometry>) => {
+        if (geometry.includes(f.getGeometry() as Geometry)) {
           f.setStyle(selectionStyle)
         } else {
           f.setStyle(
@@ -89,10 +89,10 @@ export default class SelectionLayer extends VectorLayer {
    * @memberof SelectionLayer
    */
   static convertGeoJsonToGeometries(geojson: Record<string, any>): Geometry[] {
-    const features: Feature[] = new GeoJSON({
+    const features: Feature<Geometry>[] = new GeoJSON({
       featureProjection: "EPSG:3857",
     }).readFeatures(geojson)
-    return features.map((feature: Feature) => feature.getGeometry())
+    return features.map((feature: Feature<Geometry>) => feature.getGeometry() as Geometry)
   }
 
   /**
@@ -102,10 +102,10 @@ export default class SelectionLayer extends VectorLayer {
    * @returns The feature to be used in a zoomTo call for example.
    * @memberof SelectionLayer
    */
-  public addFeatureFromGeojson(geojson: Record<string, any>): Feature[] {
+  public addFeatureFromGeojson(geojson: Record<string, any>): Feature<Geometry>[] {
     const geometry = SelectionLayer.convertGeoJsonToGeometries(geojson)
     const features = geometry.map(
-      (g): Feature =>
+      (g): Feature<Geometry> =>
         new Feature({
           geometry: g,
         }),

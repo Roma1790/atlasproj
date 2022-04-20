@@ -1,14 +1,13 @@
 import { State, Store, initialState } from "./store"
-
-import { Action } from "./actions"
 import { Mutation } from "./mutations"
 import { stateCallback } from "./events"
+import Cluster from "ol/source/Cluster"
 
 describe("Store()", () => {
   describe("constructor()", () => {
     describe("when no state is passed", () => {
       it("should have default initial state ", () => {
-        const store = new Store({}, {})
+        const store = new Store({})
         expect(store.getState()).toEqual(initialState())
       })
     })
@@ -37,8 +36,11 @@ describe("Store()", () => {
           selectedJobs: [],
           selectedGeometries: [],
           allGeometries: [],
+          jobLocations: [],
+          jobLocationsAll: [],
+          selectedLocation: [],
         }
-        const store = new Store({}, {}, customState)
+        const store = new Store({},customState)
 
         expect(store.getState()).toStrictEqual(customState)
       })
@@ -51,9 +53,7 @@ describe("Store()", () => {
         state.test = payload
         return true
       }
-      const setTestAction: Action = (ctx: Store, payload: string): boolean => {
-        return ctx.commit("setTestMutation", payload)
-      }
+  
       const customState = Object.assign(initialState(), {
         test: 0,
       })
@@ -61,7 +61,7 @@ describe("Store()", () => {
         test: 4,
       })
 
-      const store = new Store({ setTestAction }, { setTestMutation }, customState)
+      const store = new Store( { setTestMutation }, customState)
 
       const success = store.dispatch("setTestAction", 4)
       expect(success).toBe(true)
@@ -75,13 +75,11 @@ describe("Store()", () => {
         state.test = payload
         return true
       }
-      const setTestAction: Action = (ctx: Store, payload: string): boolean => {
-        return ctx.commit("setTestMutation", payload)
-      }
+      
       const customState = Object.assign(initialState(), {
         test: 0,
       })
-      const store = new Store({ setTestAction }, { setTestMutation }, customState)
+      const store = new Store( { setTestMutation }, customState)
       jest.spyOn(store.events, "publish")
 
       const wantState = Object.assign(initialState(), {

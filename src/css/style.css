@@ -1,0 +1,183 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+#justify-content
+{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    height: 700.5px;
+}
+
+#upperSection {
+    display: flex;
+    justify-content: space-between;
+    max-height: 120px;
+}
+#searchFormBlock {
+    margin-right: 2%;
+    width: 800px;
+}
+#jobList{
+    display: block;
+    height: 120px;
+    overflow: scroll;
+    width: 32%;
+}
+#jobs{
+    display: block;
+    height: 120px;
+    width: 100%;
+}
+
+/* for testing regarding the map/job switch */
+#jobsBig {
+    border: 1px solid #e1e1e1;
+    width: 100%;
+    overflow-y: scroll;
+}
+#searchForm{
+    display:flex;
+    flex-wrap:wrap;
+}
+select{
+    background-color: white;
+    box-sizing: content-box;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+.inputField {
+    width:  250px;
+    height: 26px;
+    margin: 5px;
+    margin-bottom: 0;
+    box-sizing: content-box;
+    padding-left: 2px;
+    padding-right: 2px;
+    text-align: left;
+    border-style: solid;
+    border: 1px solid #e1e1e1;
+    border-radius: 0;
+    background-color: white;
+}
+.radChange{
+    width: 28px;
+    border-style: solid;
+    border: 1px solid #e1e1e1;
+    border-radius: 0;
+    background-color: white;
+}
+.radText{
+    align-items: center;
+    padding-left: 5px;
+    padding-right: 2px;
+    padding-top: 5px;
+}
+select.inputField option {
+    border-radius: 0px;
+}
+
+.upperSectionButton{
+    height: 27.5px;
+    padding-top: 0;
+    font-size: 14px;
+    background-color: white;
+    border-radius: 0px;
+    border-style: solid black;
+    margin-left: 5px;
+    margin-right: 2px;
+    margin-top: 7px;
+}
+
+#map-container {
+    border: 2px solid grey;
+    height: 100%;
+    background-color: #ffffff;
+    overflow: hidden;
+}
+#map-containerSmall {
+    border: 2px solid grey;
+    height: 100%;
+    background-color: #ffffff;
+    overflow: hidden;
+}
+#mapSwitch {
+    display: block;
+    border: 2px solid grey;
+    height: 2000px;
+    margin: 1px;
+    overflow: hidden;
+    background-color: #ffffff;
+}
+
+.branchSelector{    
+    background-color: rgba(255, 255, 255, 1);
+    color: black;
+    font-size: 1em;
+    width: 300  px;
+    z-index: 2;
+    border: 1px solid lightgrey;
+    height: 60%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    position: absolute;
+    margin:0;
+    padding: 0;
+    margin-left: 5px;
+    white-space:nowrap; 
+}
+
+.branchSelector input {
+    margin-top:0;
+    padding-top:3px;
+}
+.branchSelector label {
+    padding-top:4px;
+    padding-bottom:4px;
+    width:100%;
+    display:inline-block;
+    line-height:normal;
+}
+
+.branchSelector label:hover {
+    background-color: #EBF0F7;
+}
+.branchSelector input:checked + label {
+    background-color: #FFFFED;
+}
+.checkboxes{
+    width: 15px!important;
+    height: 15px!important;
+}
+.allJobs{
+    padding-left: 7px;
+}
+li {
+    margin: 1em; 
+    display: inline-block;
+    width: 29%;
+    background: white;
+    overflow: hidden;
+    
+}
+li .imageContainer{
+    text-align:center;
+    float: left;
+    height: 60px;
+    width: 70px;
+    background-color: lightgrey;
+    
+}
+li .imageContainer img{
+    max-width: 95%;
+    max-height: 100%;
+    display: block;
+}
+
+li .textContainer{
+    background-color: lightgrey;
+    height: 60px;
+    font-size:0.5vw;
+}

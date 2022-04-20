@@ -1,8 +1,8 @@
 import { removeListFromList, unique } from "../lib/util"
-
+import { Job, RawLocation } from "../types/customTypes"
 import { Geometry } from "ol/geom"
-import { Job } from "../types/customTypes"
 import { State } from "./store"
+
 
 export type Mutation = (state: State, payload: any) => boolean
 /**
@@ -71,8 +71,33 @@ export const jobMutations = {
     state.allJobs = payload
     return true
   },
+  setJobLocationAll(state: State, payload: RawLocation[]): boolean {
+    state.jobLocationsAll = payload
+    return true
+  },
   /**
-   * Replace visibleJobs with new jobs..
+   * 
+   * @param state The current state.
+   * @param payload New Coordinates of all places. 
+   * @returns Set all Locations where a Job is offered
+   */
+   setJobLocation(state: State, payload: RawLocation[]): boolean{
+    state.jobLocations = payload
+    return true
+  },
+  /**
+   * 
+   * @param state The current state.
+   * @param payload Location to be added to JobLocations
+   * @returns 
+   */
+  addJobLocation(state: State, payload: RawLocation[]): boolean{
+    const combined = state.jobLocations.concat(payload)
+    state.jobLocations = unique(combined)
+    return true
+  },
+  /**
+   * Replace visibleJobs with new jobs.
    *
    * @param state - The current state.
    * @param payload - New jobs that will replace the old ones.
@@ -80,6 +105,18 @@ export const jobMutations = {
    */
   setVisibleJobs(state: State, payload: Job[]): boolean {
     state.visibleJobs = payload
+    return true
+  },
+  /**
+   * add jobs to visibleJobs. 
+   *
+   * @param state - The current state.
+   * @param payload - New jobs that will replace the old ones.
+   * @returns
+   */
+  addVisibleJobs(state: State, payload: Job[]): boolean{
+    const combined = state.visibleJobs.concat(payload)
+    state.visibleJobs = unique(combined)
     return true
   },
   /**
@@ -91,6 +128,10 @@ export const jobMutations = {
    */
   setSelectedJobs(state: State, payload: Job[]): boolean {
     state.selectedJobs = payload
+    return true
+  },
+  setSelectedLocation(state: State, payload: RawLocation[]): boolean {
+    state.selectedLocation = payload
     return true
   },
 }

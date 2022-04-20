@@ -5,32 +5,32 @@ const path = require("path")
 const webpack = require("webpack")
 
 module.exports = {
-  node: { fs: "empty" },
+  resolve: {
+    fallback: {
+      fs: false
+    }
+  },
 
   entry: [
-    "@babel/polyfill",
-    // proxy-polyfill is required because the store is using a proxy object that cnanot be transpiled by babel.
-    "proxy-polyfill",
     "./src/lib/index.ts",
   ],
   output: {
-    filename: "atlas.js",
+    filename: "[name].js",
     chunkFilename: "[name].atlas.js",
     library: "atlas",
-    path: path.resolve(__dirname, "dist"),
   },
   optimization: {
     splitChunks: {
       chunks: "all",
     },
+    
   },
   devtool: "source-map",
   devServer: {
-    compress: true,
-    overlay: true,
+    http2: true,
     port: 3000,
     open: false,
-    stats: "normal",
+    
   },
   resolve: {
     extensions: [".ts", ".js", ".jsx"],
@@ -51,6 +51,21 @@ module.exports = {
         test: /\.ts$/,
         use: ["babel-loader", "ts-loader"],
       },
+      {
+        test: /\.(png|svg|jpg|jpeg|gif|tiff)$/,
+        loader: 'file-loader',
+        options: {
+            name: '/assets/[name].[ext]',
+            outputPath: 'images',
+            publicPath: 'images',
+            emitFile: true, 
+            esModule: false,
+        },
+      },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
       { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
     ],
   },
@@ -59,7 +74,7 @@ module.exports = {
       template: "./src/lib/index.html",
     }),
     new webpack.EnvironmentPlugin({
-      CHARON_URL: "http://jbs-osm-test.informatik.fh-nuernberg.de",
+      CHARON_URL: "http://jbs-docker.informatik.fh-nuernberg.de",
       TEST_DISPLAY_ALWAYS: "false",
     }),
   ],

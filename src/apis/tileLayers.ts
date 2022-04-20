@@ -6,6 +6,9 @@ import VectorTileLayer from "ol/layer/VectorTile"
 import VectorTileSource from "ol/source/VectorTile"
 import XYZ from "ol/source/XYZ"
 import stylefunction from "ol-mapbox-style/dist/stylefunction"
+import { Geometry } from "ol/geom"
+import VectorSource from "ol/source/Vector"
+import Source from "ol/source/Source"
 
 /**
  * Interface for both OSM and Mapbox layer generation.
@@ -13,7 +16,7 @@ import stylefunction from "ol-mapbox-style/dist/stylefunction"
  * @interface TileLayerGenerator
  */
 interface TileLayerGenerator {
-  getLayer(): BaseLayer
+  getLayer(): BaseLayer<Source>
 }
 
 /**
@@ -25,7 +28,7 @@ export class OSMLayer implements TileLayerGenerator {
    *
    * @returns A layer.
    */
-  public getLayer(): BaseLayer {
+  public getLayer(): BaseLayer<Source> {
     const layer = new TileLayer({
       source: new XYZ({
         url: new Charon().tileURL,
@@ -50,7 +53,7 @@ export class MapboxLayer implements TileLayerGenerator {
    * @returns
    * @memberof MapboxLayer
    */
-  public getLayer(): BaseLayer {
+  public getLayer(): BaseLayer<Source> {
     const mapboxLayer = new VectorTileLayer({
       declutter: true,
       source: new VectorTileSource({

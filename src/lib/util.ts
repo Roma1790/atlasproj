@@ -1,5 +1,4 @@
 import { Location, SingleLocation } from "../types/customTypes"
-
 import { Extent } from "ol/extent"
 import { transformExtent } from "ol/proj"
 
@@ -104,3 +103,53 @@ export function carthesianProduct(array: any[][]): any[][] {
   }
   return results
 }
+/**
+ * Helper Function to check if array contains content.
+ * @param array 
+ * @returns Value if given array has any content.
+ */
+export function arrayContainsContent(array: Array<any>): boolean{
+  for(var counter:number = 0; counter<array.length; counter++){
+    if(array[counter] !== (null || undefined) ){
+      return true;
+    }
+  }
+  return false;
+}
+/**
+ * Converts Latitude and Longitude into Meter - Coordinates.
+   *  See https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames for more details.
+   * @param lon  longitude
+   * @param lat latitude
+   * @returns returns coordinates in meters
+   */
+ export function degrees2meters (lon: number,lat:number) {
+  var x = lon * 20037508.34 / 180;
+  var y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180);
+  y = y * 20037508.34 / 180;
+  return [x, y]
+}
+export function meters2degrees(coord: number[]) {
+    
+  const e_value = 2.7182818284;
+  const X = 20037508.34;
+  
+  const lat3857 = coord[1]
+  const long3857 = coord[0]
+  
+  //converting the longitute from epsg 3857 to 4326
+  const long4326 = (long3857*180)/X;
+  
+  //converting the latitude from epsg 3857 to 4326 split in multiple lines for readability        
+  let lat4326 = lat3857/(X / 180);
+  const exponent = (Math.PI / 180) * lat4326;
+  
+  lat4326 = Math.atan(Math.pow(e_value, exponent));
+  lat4326 = lat4326 / (Math.PI / 360); // Here is the fixed line
+  lat4326 = lat4326 - 90;
+
+  return [long4326,lat4326];
+  
+}
+
+

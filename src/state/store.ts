@@ -1,9 +1,9 @@
-import { Action, actions } from "./actions"
-import { Mutation, mutations } from "./mutations"
 
+import { Mutation, mutations } from "./mutations"
 import Events from "./events"
 import { Geometry } from "ol/geom"
-import { Job } from "../types/customTypes"
+import { Job, RawLocation } from "../types/customTypes"
+
 
 export type State = {
   allJobs: Job[]
@@ -11,13 +11,17 @@ export type State = {
   selectedJobs: Job[]
   allGeometries: Geometry[]
   selectedGeometries: Geometry[]
+  jobLocationsAll: RawLocation[]
+  jobLocations: RawLocation[]
+  selectedLocation: RawLocation[]
   test?: string
   [key: string]: any
 }
 
 /**
  * Create a fresh state.
- * I had issues where the initialState was changed by side effects. So instead of defining this as an object, it returns a new object every time it is called.
+ * I had issues where the initialState was changed by side effects. 
+ * So instead of defining this as an object, it returns a new object every time it is called.
  *
  * @returns
  */
@@ -28,6 +32,9 @@ export const initialState = (): State => {
     selectedJobs: [],
     allGeometries: [],
     selectedGeometries: [],
+    jobLocations: [],
+    jobLocationsAll: [],
+    selectedLocation: [],
   }
 }
 
@@ -37,7 +44,6 @@ export const initialState = (): State => {
  * @class Store
  */
 export class Store {
-  private actions: Record<string, Action>
   private mutations: Record<string, Mutation>
   public events: Events
   private state: State
@@ -50,13 +56,12 @@ export class Store {
    * @param [state]
    * @memberof Store
    */
-  constructor(actions: Record<string, Action>, mutations: Record<string, Mutation>, state?: State) {
-    this.actions = actions
+  constructor( mutations: Record<string, Mutation>, state?: State) {
     this.events = new Events()
     this.mutations = mutations
 
     this.state = new Proxy(state || initialState(), {
-      set: (state: State, key: string, value: Job[] | Geometry[]): boolean => {
+      set: (state: State, key: string, value: Job[] | Geometry[] | RawLocation[]): boolean => {
         state[key] = value
 
         this.events.publish("STATE_CHANGE", state)
@@ -87,12 +92,13 @@ export class Store {
    * @returns Return whether action was performed successful or not.
    * @memberof Store
    */
-  public dispatch(actionName: string, payload: any): boolean {
-    if (typeof this.actions[actionName] !== "function") {
-      console.error(`Action "${actionName}" doesn't exist.`)
+  public dispatch(mutationName: string, payload: any): boolean {
+    if (typeof this.mutations[mutationName] !== "function") {
+      console.error(`Mutation "${mutationName}" doesn't exist`)
       return false
     }
-    return this.actions[actionName](this, payload)
+    
+    return this.mutations[mutationName](this.state, payload)
   }
 
   /**
@@ -105,13 +111,7 @@ export class Store {
    * @returns Return whether mutation was performed successful or not.
    * @memberof Store
    */
-  public commit(mutationName: string, payload: any): boolean {
-    if (typeof this.mutations[mutationName] !== "function") {
-      console.error(`Mutation "${mutationName}" doesn't exist`)
-      return false
-    }
-    return this.mutations[mutationName](this.state, payload)
-  }
+  
 }
 
 /**
@@ -122,7 +122,7 @@ export class Store {
  * @returns
  */
 export function newDefaultStore(): Store {
-  return new Store(actions, mutations, initialState())
+  return new Store(mutations, initialState())
 }
 
 export const globalStore = newDefaultStore()
